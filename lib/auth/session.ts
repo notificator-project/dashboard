@@ -69,8 +69,8 @@ export async function requirePrimaryUser(returnTo = '/') {
   const { user, supabase } = await getVerifiedUser();
 
   if (!user) {
-    const next = encodeURIComponent(safeReturnPath(returnTo));
-    redirect(`/sign-in?next=${next}`);
+    const next = safeReturnPath(returnTo);
+    redirect(next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`);
   }
 
   return { user, supabase };
