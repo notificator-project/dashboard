@@ -99,8 +99,17 @@ export function AuthShell({
           {children}
         </div>
         <p className="auth-legal">
-          By continuing, you agree to the Notificator privacy policy and terms
-          that apply to the service.
+          By continuing, you agree to the Notificator{' '}
+          <a
+            href="https://notificator-project.com/privacy/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4"
+            aria-label="Privacy policy (opens in a new tab)"
+          >
+            privacy policy
+          </a>{' '}
+          and terms that apply to the service.
         </p>
       </section>
     </main>
