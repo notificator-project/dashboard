@@ -9,17 +9,25 @@ import { createClient } from '@/lib/supabase/client';
 import type { SupabasePublicConfig } from '@/lib/supabase/config';
 import { readFormText } from '@/lib/form-data';
 import { FormMessage } from './form-message';
+import { TurnstileChallenge } from './turnstile-challenge';
 
 type SignInFormProps = {
   supabaseConfig: SupabasePublicConfig | null;
   nextPath: string;
+  turnstileSiteKey?: string | null;
 };
 
-export function SignInForm({ supabaseConfig, nextPath }: SignInFormProps) {
+export function SignInForm({
+  supabaseConfig,
+  nextPath,
+  turnstileSiteKey = null,
+}: SignInFormProps) {
   const configured = Boolean(supabaseConfig);
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,12 +38,19 @@ export function SignInForm({ supabaseConfig, nextPath }: SignInFormProps) {
     const email = readFormText(form, 'email').trim();
     const password = readFormText(form, 'password');
 
+    if (turnstileSiteKey && !captchaToken) {
+      setError('Complete the security check before signing in.');
+      setPending(false);
+      return;
+    }
+
     try {
       if (!supabaseConfig) throw new Error('Supabase is not configured.');
       const supabase = createClient(supabaseConfig);
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: turnstileSiteKey ? { captchaToken } : undefined,
       });
       if (signInError) throw signInError;
 
@@ -59,6 +74,8 @@ export function SignInForm({ supabaseConfig, nextPath }: SignInFormProps) {
           : message,
       );
       setPending(false);
+      setCaptchaToken('');
+      setCaptchaResetKey((key) => key + 1);
     }
   }
 
@@ -108,6 +125,12 @@ export function SignInForm({ supabaseConfig, nextPath }: SignInFormProps) {
           </button>
         </div>
       </div>
+      <TurnstileChallenge
+        siteKey={turnstileSiteKey}
+        action="signin"
+        resetKey={captchaResetKey}
+        onToken={setCaptchaToken}
+      />
       <Button
         type="submit"
         className="auth-submit"

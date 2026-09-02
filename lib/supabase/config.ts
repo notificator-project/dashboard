@@ -28,3 +28,8 @@ export function requireSupabasePublicConfig(): SupabasePublicConfig {
 
   return config;
 }
+
+/** The Turnstile site key is public and may safely be rendered in the browser. */
+export function getTurnstileSiteKey(): string | null {
+  return process.env.TURNSTILE_SITE_KEY?.trim() || null;
+}

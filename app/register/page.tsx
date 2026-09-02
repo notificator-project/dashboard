@@ -1,6 +1,9 @@
 import { AuthShell } from '@/components/auth/auth-shell';
 import { SignUpForm } from '@/components/auth/sign-up-form';
-import { getSupabasePublicConfig } from '@/lib/supabase/config';
+import {
+  getSupabasePublicConfig,
+  getTurnstileSiteKey,
+} from '@/lib/supabase/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +35,7 @@ export default async function RegisterPage({
       <SignUpForm
         supabaseConfig={getSupabasePublicConfig()}
         nextPath={nextPath}
+        turnstileSiteKey={getTurnstileSiteKey()}
       />
     </AuthShell>
   );

@@ -9,18 +9,26 @@ import { readFormText } from '@/lib/form-data';
 import { createClient } from '@/lib/supabase/client';
 import type { SupabasePublicConfig } from '@/lib/supabase/config';
 import { FormMessage } from './form-message';
+import { TurnstileChallenge } from './turnstile-challenge';
 
 type SignUpFormProps = {
   supabaseConfig: SupabasePublicConfig | null;
   nextPath: string;
+  turnstileSiteKey?: string | null;
 };
 
-export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
+export function SignUpForm({
+  supabaseConfig,
+  nextPath,
+  turnstileSiteKey = null,
+}: SignUpFormProps) {
   const configured = Boolean(supabaseConfig);
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,6 +40,12 @@ export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
     const email = readFormText(form, 'email').trim();
     const password = readFormText(form, 'password');
     const passwordConfirmation = readFormText(form, 'passwordConfirmation');
+
+    if (turnstileSiteKey && !captchaToken) {
+      setError('Complete the security check before creating your account.');
+      setPending(false);
+      return;
+    }
 
     if (password.length < 8) {
       setError('Use at least 8 characters for your password.');
@@ -56,7 +70,10 @@ export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: callback.toString() },
+        options: {
+          emailRedirectTo: callback.toString(),
+          ...(turnstileSiteKey ? { captchaToken } : {}),
+        },
       });
       if (signUpError) throw signUpError;
 
@@ -70,6 +87,8 @@ export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
       );
       event.currentTarget.reset();
       setPending(false);
+      setCaptchaToken('');
+      setCaptchaResetKey((key) => key + 1);
     } catch (signUpError) {
       const message =
         signUpError instanceof Error
@@ -141,6 +160,13 @@ export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
           disabled={!configured || pending || Boolean(success)}
         />
       </div>
+
+      <TurnstileChallenge
+        siteKey={turnstileSiteKey}
+        action="signup"
+        resetKey={captchaResetKey}
+        onToken={setCaptchaToken}
+      />
 
       <Button
         type="submit"

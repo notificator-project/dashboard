@@ -50,6 +50,14 @@ deployment needs to override those defaults:
 - `WPNOTIF_API_URL`
 - `FIRMWARE_MANIFEST_URL`
 
+To add bot protection, create a Cloudflare Turnstile widget for the dashboard,
+set its public site key as `TURNSTILE_SITE_KEY` in Netlify, and configure the
+matching **secret key** in Supabase under **Authentication → Bot and Abuse
+Protection → CAPTCHA**. Never put the secret key in Netlify or this repository.
+The forms render the check for sign-in, registration, and password recovery;
+enable Supabase CAPTCHA enforcement only after the mobile app also sends a
+token.
+
 For Supabase Auth, allow the exact production callback URL
 `https://dashboard.notificator-project.com/auth/callback` (and the equivalent
 localhost callback for local testing). Keep the mobile deep-link redirect in

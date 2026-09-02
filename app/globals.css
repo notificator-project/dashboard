@@ -2816,6 +2816,29 @@
   gap: 20px;
   margin-top: 34px;
 }
+.turnstile-challenge {
+  display: grid;
+  gap: 6px;
+  min-height: 82px;
+  overflow-x: auto;
+}
+.turnstile-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #59647b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.turnstile-status svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+.turnstile-status.error {
+  color: #8f2630;
+}
 .auth-field {
   display: grid;
   gap: 8px;
