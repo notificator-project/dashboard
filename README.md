@@ -50,6 +50,11 @@ deployment needs to override those defaults:
 - `WPNOTIF_API_URL`
 - `FIRMWARE_MANIFEST_URL`
 
+For Supabase Auth, allow the exact production callback URL
+`https://dashboard.notificator-project.com/auth/callback` (and the equivalent
+localhost callback for local testing). Keep the mobile deep-link redirect in
+Supabase for app authentication.
+
 Only the Supabase publishable key belongs here. Never configure a Supabase secret
 or service-role key in the dashboard. Supabase Authentication must also allow the
 production dashboard URL and its `/auth/callback` route as redirect URLs.

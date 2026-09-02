@@ -49,7 +49,9 @@ export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
       if (!supabaseConfig) throw new Error('Supabase is not configured.');
       const supabase = createClient(supabaseConfig);
       const callback = new URL('/auth/callback', window.location.origin);
-      callback.searchParams.set('next', nextPath);
+      // Keep the normal signup callback exact so Supabase can match it against
+      // the production allowlist. Only protected-page signups need a return path.
+      if (nextPath !== '/') callback.searchParams.set('next', nextPath);
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
