@@ -159,7 +159,13 @@ export function SignUpForm({ supabaseConfig, nextPath }: SignUpFormProps) {
 
       <p className="auth-help">
         Already have an account?{' '}
-        <Link href={nextPath === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(nextPath)}`}>
+        <Link
+          href={
+            nextPath === '/'
+              ? '/sign-in'
+              : `/sign-in?next=${encodeURIComponent(nextPath)}`
+          }
+        >
           Sign in
         </Link>
       </p>

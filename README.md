@@ -4,6 +4,13 @@ The web companion for the [Notificator Project](https://notificator-project.com)
 
 The dashboard connects to the same Supabase account data used by the Notificator mobile app. It provides a focused browser interface for notifications, devices, API keys, and account preferences.
 
+**[Open the web dashboard (beta)](https://dashboard.notificator-project.com)** ·
+[User guide](https://docs.notificator-project.com/guides/web-dashboard/)
+
+Create an account in your browser or sign in with your existing Notificator
+credentials. No app installation is required for the web inbox, API keys, or
+device monitoring. Mobile push still requires the mobile app and permission.
+
 ## Development
 
 Requires Node.js 22.13 or newer and npm.

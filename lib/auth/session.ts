@@ -70,7 +70,9 @@ export async function requirePrimaryUser(returnTo = '/') {
 
   if (!user) {
     const next = safeReturnPath(returnTo);
-    redirect(next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`);
+    redirect(
+      next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`,
+    );
   }
 
   return { user, supabase };

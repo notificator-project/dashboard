@@ -126,7 +126,13 @@ export function SignInForm({ supabaseConfig, nextPath }: SignInFormProps) {
       </Button>
       <p className="auth-help">
         New to Notificator?{' '}
-        <Link href={nextPath === '/' ? '/register' : `/register?next=${encodeURIComponent(nextPath)}`}>
+        <Link
+          href={
+            nextPath === '/'
+              ? '/register'
+              : `/register?next=${encodeURIComponent(nextPath)}`
+          }
+        >
           Create an account
         </Link>
       </p>

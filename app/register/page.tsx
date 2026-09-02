@@ -23,7 +23,11 @@ export default async function RegisterPage({
       eyebrow="Create your account"
       title="Start using Notificator"
       description="One account connects the dashboard, mobile app, integrations, and supported devices."
-      backHref={nextPath === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(nextPath)}`}
+      backHref={
+        nextPath === '/'
+          ? '/sign-in'
+          : `/sign-in?next=${encodeURIComponent(nextPath)}`
+      }
     >
       <SignUpForm
         supabaseConfig={getSupabasePublicConfig()}
