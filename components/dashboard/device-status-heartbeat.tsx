@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { restoreAccountMqtt } from '@/lib/mqtt/browser';
 
 const deviceSyncIntervalMs = 60_000;
 
@@ -11,6 +12,9 @@ export function DeviceStatusHeartbeat({ userId }: { userId: string }) {
   const lastSync = useRef(0);
 
   useEffect(() => {
+    let active = true;
+    // Account restoration is bounded and does not block page rendering.
+    void restoreAccountMqtt(userId, () => active).catch(() => {});
     async function sync() {
       if (running.current || document.visibilityState !== 'visible') return;
       const lastSyncKey = `notificator_device_sync_v1_${userId}`;
@@ -48,6 +52,8 @@ export function DeviceStatusHeartbeat({ userId }: { userId: string }) {
           }),
         });
         if (response.ok) router.refresh();
+      } catch {
+        // A transient network failure must not produce an unhandled rejection.
       } finally {
         running.current = false;
       }
@@ -69,6 +75,7 @@ export function DeviceStatusHeartbeat({ userId }: { userId: string }) {
     window.addEventListener('notificator:mqtt-saved', afterMqttSave);
     document.addEventListener('visibilitychange', afterReturn);
     return () => {
+      active = false;
       window.clearTimeout(initial);
       window.clearInterval(interval);
       window.removeEventListener('notificator:mqtt-saved', afterMqttSave);

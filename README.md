@@ -28,6 +28,7 @@ Copy `.env.example` to `.env` for local authentication. Use the Supabase project
 npm ci
 npm audit --omit=dev
 npm run lint
+npm test
 npm run build
 ```
 
@@ -68,8 +69,9 @@ or service-role key in the dashboard. Supabase Authentication must also allow th
 production dashboard URL and its `/auth/callback` route as redirect URLs.
 
 The dashboard expects an existing Notificator Supabase schema with Row Level
-Security enabled. It does not provision database tables or policies. Verify
-cross-account isolation before connecting a production deployment.
+Security enabled. Database migrations are applied separately from deployment.
+For optional account MQTT storage, follow [the setup and shared client contract](docs/MQTT-ACCOUNT-STORAGE.md).
+This requires the included migration and the server-only `MQTT_CREDENTIALS_ENCRYPTION_KEY`.
 
 Netlify uses `npm run build` and publishes `dist`. Vinext renders the application
 through Nitro's Netlify Functions adapter, including server-rendered pages and API
@@ -90,7 +92,7 @@ Active API-key names and allowed domains can be edited without changing their se
 
 Browser MQTT synchronization and commands use the HiveMQ settings kept in the current browser session. Device identity, weather location, timezone, idle-display defaults, firmware checks, and signed OTA updates can be managed in the dashboard. Live brightness, volume, and immediate display-mode delivery remain mobile-only.
 
-HiveMQ Cloud settings can be entered and tested from the dashboard. Non-secret connection metadata stays in local browser storage, while the password is held only in the current tab session. Connection tests send credentials transiently through the authenticated dashboard route and do not persist them in Supabase or the hosted API.
+HiveMQ Cloud settings can be entered and tested from the dashboard. Session storage is the default: non-secret metadata stays in local browser storage and the password lasts for the tab session. Users can explicitly choose **Save to my account** to store an encrypted configuration in Supabase and restore it in another dashboard browser. They can remove the account copy separately or switch back to session-only storage. Tests never save credentials. The same account record is designed for future mobile and plugin retrieval through an authenticated server API; those clients are not connected to it yet.
 
 Authenticated dashboard pages refresh their server-rendered account data every 15 seconds while visible and immediately after returning to a backgrounded tab. This updates notification lists and unread counts without a full browser reload.
 

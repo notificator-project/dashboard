@@ -13,6 +13,7 @@ import { FormMessage } from '@/components/auth/form-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { DashboardDevice } from '@/lib/dashboard/overview';
+import { restoreAccountMqtt } from '@/lib/mqtt/browser';
 
 type Release = {
   version: string;
@@ -89,6 +90,7 @@ export function DeviceFirmwareCard({
     }
     setPending(action);
     setMessage('');
+    if (action !== 'check') await restoreAccountMqtt(userId).catch(() => {});
     const response = await fetch(
       `/api/devices/${encodeURIComponent(device.id)}/firmware`,
       {

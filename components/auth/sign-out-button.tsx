@@ -20,6 +20,11 @@ export function SignOutButton({
         setPending(true);
         const supabase = createClient(supabaseConfig);
         await supabase.auth.signOut();
+        // Credentials restored from an account must not remain on a signed-out tab.
+        for (const key of Object.keys(window.sessionStorage)) {
+          if (key.startsWith('notificator_mqtt_'))
+            window.sessionStorage.removeItem(key);
+        }
         window.location.assign('/sign-in');
       }}
     >

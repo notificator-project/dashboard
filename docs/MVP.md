@@ -40,14 +40,14 @@ opening the mobile app.
 
 - Device list with online, offline, unknown, and updating states.
 - Basic identity, location, timezone, and idle-display settings. Live brightness and volume remain mobile-only while MQTT credentials stay on the phone.
-- Browser-local HiveMQ Cloud settings and a transient authenticated connection test.
+- HiveMQ Cloud settings, a transient authenticated connection test, and optional encrypted account storage with automatic dashboard restoration.
 - Profile details and email notification preference.
 
 ## Explicitly deferred
 
 - Project news and blog reading.
 - Phone push-permission controls.
-- Persistent cross-device MQTT credential storage.
+- Mobile and plugin retrieval of the shared account MQTT credentials (database contract is ready).
 - Device firmware version checks and signed OTA updates for Base and Touch are
   available from each device page. Initial provisioning remains mobile-only.
 - Full mobile home-screen customisation.

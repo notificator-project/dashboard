@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { DashboardDevice } from '@/lib/dashboard/overview';
 import { readFormText } from '@/lib/form-data';
+import { restoreAccountMqtt } from '@/lib/mqtt/browser';
 
 const timezoneOptions = [
   ['Europe/Athens', 'EET-2EEST,M3.5.0/3,M10.5.0/4'],
@@ -80,6 +81,7 @@ export function DeviceSettingsForm({
       return;
     }
 
+    await restoreAccountMqtt(userId).catch(() => {});
     const metadataKey = `notificator_mqtt_metadata_v1_${userId}`;
     const passwordKey = `notificator_mqtt_session_v1_${userId}`;
     let metadata: Record<string, unknown> = {};

@@ -18,7 +18,7 @@ The dashboard reads and mutates the authenticated user's Supabase records throug
 
 ### Browser
 
-The browser may receive only the Supabase project URL, anon key, current user session, and records allowed by Row Level Security. A service-role key, Expo token, or unrestricted API credential must never enter the client bundle. User-entered MQTT details remain browser-local; the password is held in tab-scoped session storage rather than Supabase.
+The browser may receive only the Supabase project URL, anon key, current user session, and records allowed by Row Level Security. A service-role key, Expo token, or unrestricted API credential must never enter the client bundle. MQTT passwords stay in tab-scoped session storage by default. Explicit account saving encrypts the configuration on the server before it enters Supabase; the authenticated owner can restore it into their browser session. The encryption key is server-only.
 
 ### Dashboard server
 
@@ -54,9 +54,14 @@ The long-term design should use a per-account data key wrapped independently for
 
 Active API-key secrets are hidden by default and fetched only through an
 authenticated, owner-scoped, non-cacheable endpoint when the user explicitly
-reveals or copies one. MQTT credentials remain browser-local. While a visible
+reveals or copies one. MQTT credentials use session storage with optional encrypted account persistence. While a visible
 session has complete HiveMQ settings, the dashboard periodically asks the
 hosted API to reconcile every active device from its retained status topic.
+
+The shared `user_mqtt_credentials` table, versioned ciphertext envelope, deployment
+steps, and future plugin/mobile API access are documented in
+[MQTT account storage](MQTT-ACCOUNT-STORAGE.md). The dashboard uses owner-scoped
+RLS for all credential operations and does not need a service-role key.
 
 ## Delivery sequence
 
