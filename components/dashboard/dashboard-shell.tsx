@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand-logo';
 import { DashboardHeartbeat } from '@/components/dashboard/dashboard-heartbeat';
+import { DashboardNavigationFeedback } from '@/components/dashboard/dashboard-navigation-feedback';
 import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar';
 import { DeviceStatusHeartbeat } from '@/components/dashboard/device-status-heartbeat';
 import { MobileNavigation } from '@/components/dashboard/mobile-navigation';
@@ -41,6 +42,7 @@ export function DashboardShell({
       />
 
       <main className="workspace" id="main-content" tabIndex={-1}>
+        <DashboardNavigationFeedback />
         <header className="mobile-header">
           <Link href="/" className="sidebar-brand">
             <BrandLogo />

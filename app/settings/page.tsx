@@ -2,6 +2,7 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { MqttSettingsForm } from '@/components/dashboard/mqtt-settings-form';
 import { NotificationSettingsForm } from '@/components/dashboard/notification-settings-form';
 import { ToastSettingsForm } from '@/components/dashboard/toast-settings-form';
+import { BrowserNotificationSettingsForm } from '@/components/dashboard/browser-notification-settings-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { requireUser } from '@/lib/auth/session';
 import { loadDashboardShellOverview } from '@/lib/dashboard/overview';
@@ -46,6 +47,14 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent>
               <ToastSettingsForm />
+            </CardContent>
+          </Card>
+          <Card className="page-card">
+            <CardHeader>
+              <CardTitle>Browser notifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BrowserNotificationSettingsForm />
             </CardContent>
           </Card>
         </div>

@@ -60,7 +60,7 @@ RLS restricts select/insert/update/delete to the authenticated row owner. Anonym
 access is revoked. Raw database errors and credential payloads are never logged or
 returned in error messages. Credential responses are private and non-cacheable.
 
-## Dashboard endpoint and future consumers
+## Dashboard endpoint and hosted API consumers
 
 `/api/mqtt/credentials` currently uses the dashboard's Supabase session cookie:
 
@@ -75,22 +75,25 @@ Writes require the dashboard's same-origin request. All methods independently
 validate the authenticated user and derive the owner ID from that session.
 
 The table and envelope deliberately belong to the **Notificator account**, not a
-browser or dashboard installation. For mobile and the WordPress plugin, add a
-credential retrieval route to the shared hosted API that reads this same record
-and uses the same envelope/key. Do not create separate client-specific copies in
-the database, or ship the server encryption key to either client.
+browser or dashboard installation. The shared hosted API reads this same record
+for authenticated WordPress delivery and uses the same envelope/key. Do not
+create separate client-specific copies in the database, or ship the server
+encryption key to either client.
 
 - Mobile: validate a Supabase access token, derive its account ID, return credentials
   over HTTPS, and store the result in the phone's secure storage on explicit use.
-- Plugin: validate a Notificator integration API key, derive its owner server-side,
-  and require an explicit credential-sharing scope/consent before revealing MQTT
-  credentials. Existing notification-send keys must not automatically gain broker
-  password access. Store retrieved credentials with the plugin's existing controls.
+- Plugin: validate a `wordpress_server` Notificator integration API key, derive its
+  owner server-side, and resolve the account connection only inside the hosted
+  API. The password is never returned to WordPress or stored in its database.
+  A missing or unavailable account row skips MQTT without blocking other
+  notification channels; a custom local broker remains available as a fallback.
 
 Future clients should use the account copy only when explicitly selected and handle
-missing/deleted configurations. The dashboard endpoint does not currently accept
-plugin API keys or mobile bearer tokens. The shared API authentication adapter and
-client controls are follow-up work; the database format does not need to change.
+missing/deleted configurations. The dashboard endpoint continues to accept only
+dashboard session cookies; WordPress uses the hosted API's signed API-key flow.
+The database format does not need to change. The dashboard and hosted API must
+share the same server-only `MQTT_CREDENTIALS_ENCRYPTION_KEY`; rotating that key
+requires users to save their MQTT credentials again.
 
 ## Verification
 

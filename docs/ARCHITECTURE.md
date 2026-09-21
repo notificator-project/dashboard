@@ -18,7 +18,7 @@ The dashboard reads and mutates the authenticated user's Supabase records throug
 
 ### Browser
 
-The browser may receive only the Supabase project URL, anon key, current user session, and records allowed by Row Level Security. A service-role key, Expo token, or unrestricted API credential must never enter the client bundle. MQTT passwords stay in tab-scoped session storage by default. Explicit account saving encrypts the configuration on the server before it enters Supabase; the authenticated owner can restore it into their browser session. The encryption key is server-only.
+The browser may receive only the Supabase project URL, anon key, current user session, and records allowed by Row Level Security. A service-role key, Expo token, or unrestricted API credential must never enter the client bundle. MQTT passwords stay in tab-scoped session storage by default. Explicit account saving encrypts the configuration on the server before it enters Supabase; the authenticated owner can restore it into their browser session. The encryption key is server-only. Browser notification preferences are local to the browser, and native notification permission is granted and enforced by the browser and operating system; no notification permission or subscription token is stored in Supabase.
 
 ### Dashboard server
 
@@ -58,8 +58,15 @@ reveals or copies one. MQTT credentials use session storage with optional encryp
 session has complete HiveMQ settings, the dashboard periodically asks the
 hosted API to reconcile every active device from its retained status topic.
 
+The dashboard heartbeat polls for new alerts while the page is visible and after
+returning from a background tab. When browser notifications are enabled and the
+page is hidden or unfocused, a new alert is delivered through the browser's
+native Notification API instead of duplicating the in-app toast. If native
+notifications are unavailable or blocked, the dashboard continues to use its
+in-app toast behavior.
+
 The shared `user_mqtt_credentials` table, versioned ciphertext envelope, deployment
-steps, and future plugin/mobile API access are documented in
+steps, and hosted API consumers are documented in
 [MQTT account storage](MQTT-ACCOUNT-STORAGE.md). The dashboard uses owner-scoped
 RLS for all credential operations and does not need a service-role key.
 

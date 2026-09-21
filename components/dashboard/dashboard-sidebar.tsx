@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Bell,
   CircleUserRound,
@@ -57,6 +58,7 @@ export function DashboardSidebar({
   statusTitle?: string;
   statusDescription?: string;
 }) {
+  const router = useRouter();
   const collapsed = useSyncExternalStore(
     subscribeToPreference,
     preferenceSnapshot,
@@ -117,6 +119,8 @@ export function DashboardSidebar({
             <Link
               key={item.href}
               href={item.href}
+              prefetch
+              onMouseEnter={() => router.prefetch(item.href)}
               className={active ? 'active' : undefined}
               aria-current={active ? 'page' : undefined}
               title={collapsed ? item.label : undefined}
@@ -151,6 +155,8 @@ export function DashboardSidebar({
         </output>
         <Link
           href="/settings"
+          prefetch
+          onMouseEnter={() => router.prefetch('/settings')}
           className={activePath === '/settings' ? 'active' : undefined}
           aria-current={activePath === '/settings' ? 'page' : undefined}
           title={collapsed ? 'Settings' : undefined}

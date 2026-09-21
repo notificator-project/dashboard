@@ -37,7 +37,7 @@ read-only repository permissions and does not receive deployment credentials.
 
 ## Netlify deployment
 
-The dashboard is currently a beta release (`v0.1.0`). Before deploying, configure
+The dashboard is currently a beta release (`v0.9.0`). Before deploying, configure
 these required environment variables in Netlify, using the values documented in
 `.env.example`:
 
@@ -92,7 +92,14 @@ Active API-key names and allowed domains can be edited without changing their se
 
 Browser MQTT synchronization and commands use the HiveMQ settings kept in the current browser session. Device identity, weather location, timezone, idle-display defaults, firmware checks, and signed OTA updates can be managed in the dashboard. Live brightness, volume, and immediate display-mode delivery remain mobile-only.
 
-HiveMQ Cloud settings can be entered and tested from the dashboard. Session storage is the default: non-secret metadata stays in local browser storage and the password lasts for the tab session. Users can explicitly choose **Save to my account** to store an encrypted configuration in Supabase and restore it in another dashboard browser. They can remove the account copy separately or switch back to session-only storage. Tests never save credentials. The same account record is designed for future mobile and plugin retrieval through an authenticated server API; those clients are not connected to it yet.
+HiveMQ Cloud settings can be entered and tested from the dashboard. Session storage is the default: non-secret metadata stays in local browser storage and the password lasts for the tab session. Users can explicitly choose **Save to my account** to store an encrypted configuration in Supabase and restore it in another dashboard browser. They can remove the account copy separately or switch back to session-only storage. Tests never save credentials. The hosted API can now use the same account record for WordPress delivery when an enabled `wordpress_server` API key is presented; the broker password remains server-side and is never returned to the plugin.
+
+Browser notifications can be enabled in **Settings → Browser notifications**. After
+the browser permission is granted, new alerts can appear as native notifications
+when the dashboard is in another tab or window. The settings page includes a test
+notification and reports when the browser or operating system has blocked delivery.
+When the dashboard is active, its regular in-app toasts remain available; existing
+alerts are not replayed when browser notifications are enabled.
 
 Authenticated dashboard pages refresh their server-rendered account data every 15 seconds while visible and immediately after returning to a backgrounded tab. This updates notification lists and unread counts without a full browser reload.
 

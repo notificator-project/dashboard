@@ -42,6 +42,8 @@ opening the mobile app.
 - Basic identity, location, timezone, and idle-display settings. Live brightness and volume remain mobile-only while MQTT credentials stay on the phone.
 - HiveMQ Cloud settings, a transient authenticated connection test, and optional encrypted account storage with automatic dashboard restoration.
 - Profile details and email notification preference.
+- Optional browser notifications for new alerts, with permission status and a
+  test notification in Settings.
 
 ## Explicitly deferred
 

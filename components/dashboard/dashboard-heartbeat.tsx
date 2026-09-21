@@ -3,6 +3,7 @@
 import { useEffect, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/toast';
+import { readBrowserNotificationPreferences } from '@/lib/browser-notification-preferences';
 
 const heartbeatIntervalMs = 15_000;
 const focusRefreshThresholdMs = 5_000;
@@ -27,6 +28,26 @@ function toastDescription(notification: HeartbeatNotification) {
   return [notification.source, summary].filter(Boolean).join(' · ');
 }
 
+function shouldUseBrowserNotification() {
+  if (typeof window === 'undefined' || !('Notification' in window))
+    return false;
+  if (Notification.permission !== 'granted') return false;
+  if (!readBrowserNotificationPreferences().enabled) return false;
+  return document.visibilityState !== 'visible' || !document.hasFocus();
+}
+
+function claimBrowserNotification(id: string) {
+  try {
+    const key = `notificator_browser_notification_${id}`;
+    const claimedAt = Number(window.localStorage.getItem(key) || 0);
+    if (claimedAt && Date.now() - claimedAt < 60_000) return false;
+    window.localStorage.setItem(key, String(Date.now()));
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export function DashboardHeartbeat({
   notifications,
 }: {
@@ -43,7 +64,7 @@ export function DashboardHeartbeat({
     lastCheck.current = Date.now();
 
     async function checkForUpdates() {
-      if (checking.current || document.visibilityState !== 'visible') return;
+      if (checking.current) return;
       checking.current = true;
       lastCheck.current = Date.now();
       try {
@@ -64,10 +85,6 @@ export function DashboardHeartbeat({
       }
     }
 
-    function checkIfVisible() {
-      if (document.visibilityState === 'visible') void checkForUpdates();
-    }
-
     function checkAfterReturn() {
       if (
         document.visibilityState === 'visible' &&
@@ -77,7 +94,10 @@ export function DashboardHeartbeat({
       }
     }
 
-    const interval = window.setInterval(checkIfVisible, heartbeatIntervalMs);
+    const interval = window.setInterval(
+      () => void checkForUpdates(),
+      heartbeatIntervalMs,
+    );
     document.addEventListener('visibilitychange', checkAfterReturn);
     window.addEventListener('focus', checkAfterReturn);
 
@@ -105,6 +125,23 @@ export function DashboardHeartbeat({
       .slice(0, 3)
       .reverse()
       .forEach((notification) => {
+        const useBrowserNotification =
+          shouldUseBrowserNotification() &&
+          claimBrowserNotification(notification.id);
+
+        if (useBrowserNotification) {
+          const nativeNotification = new Notification(notification.title, {
+            body: toastDescription(notification),
+            tag: `notificator-${notification.id}`,
+          });
+          nativeNotification.onclick = () => {
+            window.focus();
+            router.push(`/notifications/${notification.id}`);
+            nativeNotification.close();
+          };
+          return;
+        }
+
         toast.add({
           id: `notification-${notification.id}`,
           title: notification.title,
@@ -119,16 +156,34 @@ export function DashboardHeartbeat({
       });
 
     if (newNotifications.length > 3) {
-      toast.add({
-        id: `notification-summary-${currentIds[0]}`,
-        title: `${newNotifications.length - 3} more new notifications`,
-        description: 'Open the inbox to review the remaining alerts.',
-        type: 'info',
-        actionProps: {
-          children: 'View inbox',
-          onClick: () => router.push('/notifications'),
-        },
-      });
+      const useBrowserNotification =
+        shouldUseBrowserNotification() &&
+        claimBrowserNotification(`summary-${currentIds[0]}`);
+      if (useBrowserNotification) {
+        const nativeNotification = new Notification(
+          `${newNotifications.length - 3} more new notifications`,
+          {
+            body: 'Open the inbox to review the remaining alerts.',
+            tag: `notificator-summary-${currentIds[0]}`,
+          },
+        );
+        nativeNotification.onclick = () => {
+          window.focus();
+          router.push('/notifications');
+          nativeNotification.close();
+        };
+      } else {
+        toast.add({
+          id: `notification-summary-${currentIds[0]}`,
+          title: `${newNotifications.length - 3} more new notifications`,
+          description: 'Open the inbox to review the remaining alerts.',
+          type: 'info',
+          actionProps: {
+            children: 'View inbox',
+            onClick: () => router.push('/notifications'),
+          },
+        });
+      }
     }
   }, [notifications, router]);
 
