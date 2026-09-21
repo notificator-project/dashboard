@@ -3010,7 +3010,7 @@
 .form-message {
   display: grid;
   grid-template-columns: auto 1fr;
-  align-items: start;
+  align-items: center;
   gap: 9px;
   border: 1px solid #cbd8f7;
   border-radius: 12px;
@@ -3022,7 +3022,6 @@
 }
 .form-message svg {
   width: 16px;
-  margin-top: 1px;
 }
 .form-message.error {
   border-color: #e9afb4;
