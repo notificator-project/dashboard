@@ -3,15 +3,13 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
-  LockKeyhole,
   Search,
   X,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { DeleteUnlockedNotificationsButton } from '@/components/dashboard/delete-unlocked-notifications-button';
 import { MarkAllReadButton } from '@/components/dashboard/mark-all-read-button';
-import { NotificationRowActions } from '@/components/dashboard/notification-row-actions';
-import { Badge } from '@/components/ui/badge';
+import { NotificationRow } from '@/components/dashboard/notification-row';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -217,64 +215,7 @@ export default async function NotificationsPage({
                 <span>{group.notifications.length}</span>
               </div>
               {group.notifications.map((notification) => (
-                <article
-                  key={notification.id}
-                  className={
-                    [
-                      notification.unread ? 'unread' : '',
-                      notification.locked ? 'locked' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ') || undefined
-                  }
-                >
-                  <span
-                    className={`severity severity-${notification.severity.toLowerCase()}`}
-                  >
-                    <Bell />
-                  </span>
-                  <div className="notification-copy">
-                    <div>
-                      <h2>
-                        <Link href={`/notifications/${notification.id}`}>
-                          {notification.title}
-                        </Link>
-                      </h2>
-                      {notification.unread ? (
-                        <>
-                          <i aria-hidden="true" />
-                          <span className="sr-only">Unread</span>
-                        </>
-                      ) : null}
-                      {notification.locked ? (
-                        <span className="locked-notification-pill">
-                          <LockKeyhole aria-hidden="true" /> Locked
-                        </span>
-                      ) : null}
-                    </div>
-                    <p>{notification.source}</p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={`severity-label ${notification.severity.toLowerCase()}`}
-                  >
-                    {notification.severity}
-                  </Badge>
-                  <time>{notification.time}</time>
-                  <Link
-                    className="row-link"
-                    href={`/notifications/${notification.id}`}
-                    aria-label={`Read ${notification.title}`}
-                  >
-                    <ChevronRight />
-                  </Link>
-                  <NotificationRowActions
-                    id={notification.id}
-                    title={notification.title}
-                    unread={notification.unread}
-                    locked={notification.locked}
-                  />
-                </article>
+                <NotificationRow key={notification.id} {...notification} />
               ))}
             </section>
           ))}

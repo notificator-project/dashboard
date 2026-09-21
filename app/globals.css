@@ -756,7 +756,7 @@
 .notification-list article {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto 70px auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto 70px auto;
   align-items: center;
   gap: 12px;
   min-height: 72px;
@@ -1530,16 +1530,36 @@
   max-width: 820px;
 }
 .row-link {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  cursor: pointer;
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: auto;
+  height: auto;
   place-items: center;
-  border-radius: 9px;
+  border-radius: inherit;
   color: #65728a;
 }
 .row-link:hover {
-  background: #edf3ff;
+  background: rgba(237, 243, 255, 0.55);
   color: #1f56db;
+}
+.row-link svg {
+  position: absolute;
+  right: 116px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.notification-list article > :not(.row-link) {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.notification-list article .notification-row-actions,
+.notification-list article .notification-row-actions * {
+  pointer-events: auto;
 }
 .row-link svg,
 .page-back-link svg {
@@ -2686,7 +2706,11 @@
     justify-content: flex-end;
   }
   .notification-list .row-link {
-    grid-column: 3;
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .notification-list .row-link svg {
+    right: 16px;
   }
   .pagination span {
     text-align: center;
