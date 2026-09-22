@@ -392,6 +392,7 @@ export async function loadDashboardOverview(
 /** Loads only the identity and alert state shared by secondary dashboard pages. */
 export async function loadDashboardShellOverview(
   user: User,
+  notificationLimit = 4,
 ): Promise<DashboardShellOverview> {
   const supabase = await createClient();
   const [profileResult, unreadResult, notificationsResult] = await Promise.all([
@@ -410,7 +411,7 @@ export async function loadDashboardShellOverview(
       .select('id, encrypted_data, read, locked, timestamp')
       .eq('user_id', user.id)
       .order('timestamp', { ascending: false })
-      .limit(4),
+      .limit(notificationLimit),
   ]);
   const profile = profileResult.data as Record<string, unknown> | null;
   const sharedKey = text(profile?.public_key);
@@ -430,31 +431,6 @@ export async function loadDashboardShellOverview(
       (result) => Boolean(result.error),
     ),
   };
-}
-
-export async function loadDashboardNotifications(
-  user: User,
-  limit = 50,
-): Promise<OverviewNotification[]> {
-  const supabase = await createClient();
-  const [{ data: profile }, { data: rows, error }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('public_key')
-      .eq('user_id', user.id)
-      .maybeSingle(),
-    supabase
-      .from('encrypted_notifications')
-      .select('id, encrypted_data, read, locked, timestamp')
-      .eq('user_id', user.id)
-      .order('timestamp', { ascending: false })
-      .limit(limit),
-  ]);
-  if (error) throw error;
-  const sharedKey = text(profile?.public_key);
-  return (Array.isArray(rows) ? rows : []).map((row) =>
-    mapNotificationRow(row, sharedKey),
-  );
 }
 
 export async function loadDashboardNotification(user: User, id: string) {

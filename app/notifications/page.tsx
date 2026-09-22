@@ -15,7 +15,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { requireUser } from '@/lib/auth/session';
 import {
-  loadDashboardNotifications,
   loadDashboardShellOverview,
 } from '@/lib/dashboard/overview';
 
@@ -76,10 +75,8 @@ export default async function NotificationsPage({
   const kind = param(params.kind) || 'all';
   const requestedPage = Number.parseInt(param(params.page), 10);
   const user = await requireUser('/notifications');
-  const [overview, notifications] = await Promise.all([
-    loadDashboardShellOverview(user),
-    loadDashboardNotifications(user),
-  ]);
+  const overview = await loadDashboardShellOverview(user, 50);
+  const notifications = overview.notifications;
   const normalizedQuery = query.toLowerCase();
   const filteredNotifications = notifications.filter((notification) => {
     const matchesQuery =
@@ -200,7 +197,7 @@ export default async function NotificationsPage({
           ) : null}
         </div>
       </div>
-      <Card className="activity-card page-card">
+      <Card className="activity-card page-card notification-page-card">
         <CardContent className="notification-list full-notification-list">
           {notificationGroups.map((group) => (
             <section
