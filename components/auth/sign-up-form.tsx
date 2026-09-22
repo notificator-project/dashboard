@@ -36,7 +36,8 @@ export function SignUpForm({
     setSuccess('');
     setPending(true);
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const email = readFormText(form, 'email').trim();
     const password = readFormText(form, 'password');
     const passwordConfirmation = readFormText(form, 'passwordConfirmation');
@@ -85,7 +86,7 @@ export function SignUpForm({
       setSuccess(
         'Check your email to confirm your account, then return here to sign in.',
       );
-      event.currentTarget.reset();
+      formElement.reset();
       setPending(false);
       setCaptchaToken('');
       setCaptchaResetKey((key) => key + 1);
