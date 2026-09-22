@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, ChevronRight, LockKeyhole } from 'lucide-react';
+import { Bell, LockKeyhole } from 'lucide-react';
 import { NotificationRowActions } from '@/components/dashboard/notification-row-actions';
 import { Badge } from '@/components/ui/badge';
 
@@ -64,9 +64,7 @@ export function NotificationRow({
         {severity}
       </Badge>
       <time>{time}</time>
-      <a className="row-link" href={href} aria-label={`Read ${title}`}>
-        <ChevronRight />
-      </a>
+      <a className="row-link" href={href} aria-label={`Read ${title}`} />
       {actions ? (
         <NotificationRowActions
           id={id}

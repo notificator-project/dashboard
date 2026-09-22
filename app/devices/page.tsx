@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, Info, MonitorSmartphone, Plus } from 'lucide-react';
+import { Info, MonitorSmartphone, Plus } from 'lucide-react';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
@@ -72,9 +72,7 @@ export default async function DevicesPage() {
                 className="row-link"
                 href={`/devices/${device.id}`}
                 aria-label={`Manage ${device.name}`}
-              >
-                <ChevronRight />
-              </Link>
+              />
             </article>
           ))}
           {devices.length === 0 ? (

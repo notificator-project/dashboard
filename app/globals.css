@@ -373,7 +373,7 @@
 }
 .navigation-loading-overlay {
   position: absolute;
-  z-index: 30;
+  z-index: 100;
   inset: 0;
   display: flex;
   align-items: flex-start;
@@ -388,8 +388,14 @@
 }
 .navigation-loading-overlay svg {
   width: 18px;
+  height: 18px;
+  flex: none;
   color: #1f56db;
   animation: route-loading-spin 0.9s linear infinite;
+}
+.navigation-loading-overlay span {
+  color: #344057;
+  font-weight: 650;
 }
 .mobile-header {
   display: none;
@@ -756,7 +762,7 @@
 .notification-list article {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto 70px auto;
+  grid-template-columns: auto minmax(0, 1fr) auto max-content auto;
   align-items: center;
   gap: 12px;
   min-height: 72px;
@@ -866,6 +872,8 @@
 .notification-list time {
   margin: 0;
   text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .severity-label {
   font-size: 11px;
@@ -1545,16 +1553,6 @@
   background: rgba(237, 243, 255, 0.55);
   color: #1f56db;
 }
-.row-link svg {
-  position: absolute;
-  right: 116px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-.notification-list article.no-actions .row-link svg {
-  right: 16px;
-}
 .notification-list article.no-actions {
   grid-template-columns: auto minmax(0, 1fr) auto max-content;
 }
@@ -1570,7 +1568,6 @@
 .notification-list article .notification-row-actions * {
   pointer-events: auto;
 }
-.row-link svg,
 .page-back-link svg {
   width: 16px;
 }
@@ -1578,9 +1575,6 @@
   position: relative;
   z-index: 1;
   pointer-events: none;
-}
-.page-device-list article .row-link svg {
-  right: 16px;
 }
 .page-back-link {
   display: inline-flex;
@@ -1799,7 +1793,8 @@
 }
 .page-device-list article,
 .api-key-list article {
-  display: grid;
+	position: relative;
+	display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 13px;
@@ -2725,9 +2720,6 @@
   .notification-list .row-link {
     grid-column: auto;
     grid-row: auto;
-  }
-  .notification-list .row-link svg {
-    right: 16px;
   }
   .pagination span {
     text-align: center;
