@@ -1,12 +1,12 @@
 import { AuthShell } from '@/components/auth/auth-shell';
 import { UpdatePasswordForm } from '@/components/auth/update-password-form';
 import { getSupabasePublicConfig } from '@/lib/supabase/config';
-import { requirePrimaryUser } from '@/lib/auth/session';
+import { requireUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function UpdatePasswordPage() {
-  await requirePrimaryUser('/update-password');
+  await requireUser('/update-password');
   return (
     <AuthShell
       eyebrow="Choose a new password"
