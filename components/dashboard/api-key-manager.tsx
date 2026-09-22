@@ -88,7 +88,7 @@ export function ApiKeyManager({ keys }: { keys: ApiKeySummary[] }) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<
     'all' | 'active' | 'revoked'
-  >('all');
+  >('active');
   const [typeFilter, setTypeFilter] = useState('all');
 
   const activeCount = keys.filter((key) => !key.revokedAt).length;

@@ -7,7 +7,7 @@ import { NotificationDetailActions } from '@/components/dashboard/notification-d
 import { PluginVersionStatus } from '@/components/dashboard/plugin-version-status';
 import { RawPayloadPanel } from '@/components/dashboard/raw-payload-panel';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { requireUser } from '@/lib/auth/session';
 import {
   loadDashboardNotification,
@@ -122,7 +122,7 @@ export default async function NotificationPage({
         <ArrowLeft /> Back to notifications
       </Link>
       <Card className="page-card notification-detail-card">
-        <CardHeader>
+        <CardHeader className="notification-summary-header">
           <div className="detail-badges">
             <Badge
               variant="outline"
@@ -139,7 +139,7 @@ export default async function NotificationPage({
               </Badge>
             ) : null}
           </div>
-          <CardTitle>{notification.title}</CardTitle>
+          <span className="notification-summary-label">Message</span>
         </CardHeader>
         <CardContent>
           {notification.encrypted ? (
