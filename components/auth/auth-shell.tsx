@@ -41,32 +41,32 @@ export function AuthShell({
         </Link>
 
         <div className="auth-story-copy">
-          <p className="auth-kicker">ONE CONNECTED VIEW</p>
-          <p className="auth-story-title">Keep meaningful events close.</p>
+          <p className="auth-kicker">YOUR NOTIFICATOR CONTROL ROOM</p>
+          <p className="auth-story-title">See what matters. Stay in control.</p>
           <p>
-            Review alerts, manage integrations, and check connected devices from
-            the same Notificator account you use on mobile.
+            Bring your alerts, integrations, and connected devices into one calm
+            place — with the same Notificator account you use on mobile.
           </p>
           <ul>
             <li>
               <BellRing />
               <span>
-                <strong>A focused inbox</strong>
+                <strong>Find the signal</strong>
                 <small>See what needs attention without the noise.</small>
               </span>
             </li>
             <li>
               <KeyRound />
               <span>
-                <strong>Safer integrations</strong>
-                <small>Create and control credentials from one place.</small>
+                <strong>Connect your stack</strong>
+                <small>Manage API keys and delivery from one place.</small>
               </span>
             </li>
             <li>
               <MonitorSmartphone />
               <span>
-                <strong>Device visibility</strong>
-                <small>Know which physical displays are available.</small>
+                <strong>Watch your devices</strong>
+                <small>Know which displays are online and ready.</small>
               </span>
             </li>
           </ul>
