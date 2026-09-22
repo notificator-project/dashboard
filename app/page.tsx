@@ -16,6 +16,7 @@ import { DashboardNavigationFeedback } from '@/components/dashboard/dashboard-na
 import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar';
 import { DeviceStatusHeartbeat } from '@/components/dashboard/device-status-heartbeat';
 import { MobileNavigation } from '@/components/dashboard/mobile-navigation';
+import { NotificationRow } from '@/components/dashboard/notification-row';
 import { OverviewDateTime } from '@/components/dashboard/overview-date-time';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
@@ -210,49 +211,11 @@ export default async function Home() {
             </CardHeader>
             <CardContent className="notification-list">
               {overview.notifications.map((notification) => (
-                <article
+                <NotificationRow
                   key={notification.id}
-                  className={notification.unread ? 'unread' : undefined}
-                >
-                  <span
-                    className={`severity severity-${notification.severity.toLowerCase()}`}
-                  >
-                    <Bell />
-                  </span>
-                  <div className="notification-copy">
-                    <div>
-                      <h3>
-                        <Link href={`/notifications/${notification.id}`}>
-                          {notification.title}
-                        </Link>
-                      </h3>
-                      {notification.unread ? (
-                        <>
-                          <i aria-hidden="true" />
-                          <span className="sr-only">Unread</span>
-                        </>
-                      ) : null}
-                    </div>
-                    <p>{notification.source}</p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={`severity-label ${notification.severity.toLowerCase()}`}
-                  >
-                    {notification.severity}
-                  </Badge>
-                  <time>{notification.time}</time>
-                  <Link
-                    className={buttonVariants({
-                      variant: 'ghost',
-                      size: 'icon',
-                    })}
-                    aria-label={`Open ${notification.title}`}
-                    href={`/notifications/${notification.id}`}
-                  >
-                    <ChevronRight />
-                  </Link>
-                </article>
+                  {...notification}
+                  actions={false}
+                />
               ))}
               {overview.notifications.length === 0 ? (
                 <div className="dashboard-empty-state">

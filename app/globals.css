@@ -1552,6 +1552,15 @@
   transform: translateY(-50%);
   pointer-events: none;
 }
+.notification-list article.no-actions .row-link svg {
+  right: 16px;
+}
+.notification-list article.no-actions {
+  grid-template-columns: auto minmax(0, 1fr) auto max-content;
+}
+.notification-list article.no-actions time {
+  white-space: nowrap;
+}
 .notification-list article > :not(.row-link) {
   position: relative;
   z-index: 1;
@@ -1564,6 +1573,14 @@
 .row-link svg,
 .page-back-link svg {
   width: 16px;
+}
+.page-device-list article > :not(.row-link) {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.page-device-list article .row-link svg {
+  right: 16px;
 }
 .page-back-link {
   display: inline-flex;

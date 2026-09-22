@@ -12,6 +12,7 @@ type NotificationRowProps = {
   time: string;
   unread: boolean;
   locked: boolean;
+  actions?: boolean;
 };
 
 export function NotificationRow({
@@ -22,12 +23,17 @@ export function NotificationRow({
   time,
   unread,
   locked,
+  actions = true,
 }: NotificationRowProps) {
   const href = `/notifications/${id}`;
 
   return (
     <article
-      className={[unread ? 'unread' : '', locked ? 'locked' : '']
+      className={[
+        unread ? 'unread' : '',
+        locked ? 'locked' : '',
+        actions === false ? 'no-actions' : '',
+      ]
         .filter(Boolean)
         .join(' ') || undefined}
     >
@@ -61,12 +67,14 @@ export function NotificationRow({
       <a className="row-link" href={href} aria-label={`Read ${title}`}>
         <ChevronRight />
       </a>
-      <NotificationRowActions
-        id={id}
-        title={title}
-        unread={unread}
-        locked={locked}
-      />
+      {actions ? (
+        <NotificationRowActions
+          id={id}
+          title={title}
+          unread={unread}
+          locked={locked}
+        />
+      ) : null}
     </article>
   );
 }

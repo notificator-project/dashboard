@@ -9,7 +9,21 @@ export function DashboardNavigationFeedback() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setLoading(false));
+    const frame = window.requestAnimationFrame(() => {
+      const pendingNavigation = (
+        window as Window & {
+          __VINEXT_RSC_PENDING__?: Promise<unknown> | null;
+        }
+      ).__VINEXT_RSC_PENDING__;
+      if (!pendingNavigation) {
+        setLoading(false);
+        return;
+      }
+      pendingNavigation.then(
+        () => setLoading(false),
+        () => setLoading(false),
+      );
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [pathname]);
 
