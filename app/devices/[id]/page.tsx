@@ -5,7 +5,6 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { DeviceFirmwareCard } from '@/components/dashboard/device-firmware-card';
 import { DevicePauseButton } from '@/components/dashboard/device-pause-button';
 import { DeviceSettingsForm } from '@/components/dashboard/device-settings-form';
-import { Badge } from '@/components/ui/badge';
 import { requireUser } from '@/lib/auth/session';
 import {
   loadDashboardDevice,
@@ -36,9 +35,18 @@ export default async function DevicePage({
       description={`${device.type} · ${device.deviceId || 'Device ID unavailable'}`}
       action={
         <div className="device-header-actions">
-          <Badge variant="outline" className={device.status.toLowerCase()}>
-            <i /> {device.status}
-          </Badge>
+          <div
+            className={`device-status-summary ${device.status.toLowerCase()}`}
+            aria-label={`Device status: ${device.status}`}
+          >
+            <span className="device-status-summary-dot" aria-hidden="true">
+              <i />
+            </span>
+            <span>
+              <strong>{device.status}</strong>
+              <small>Live device status</small>
+            </span>
+          </div>
           <DevicePauseButton
             id={device.id}
             name={device.name}

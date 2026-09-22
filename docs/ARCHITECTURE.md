@@ -4,7 +4,7 @@
 
 The dashboard is the focused web companion to the Notificator mobile app. It gives account holders access to operational features that benefit from a larger screen: the notification inbox, API-key management, device state, basic account preferences, and signed firmware updates. News and mobile-only preferences remain outside the focused dashboard experience.
 
-The dashboard reads and mutates the authenticated user's Supabase records through Row Level Security and narrow server routes. Preview-only controls have been removed from the operational pages.
+The dashboard reads and mutates the authenticated user's Supabase records through Row Level Security and narrow server routes. Preview-only controls have been removed from the operational pages. Account identity and security changes continue to use Supabase Auth directly from the authenticated browser session: email changes require confirmation, password changes require the current password, and TOTP enrollment/removal uses Supabase MFA factors.
 
 ## Runtime
 

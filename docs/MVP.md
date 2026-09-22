@@ -20,6 +20,8 @@ opening the mobile app.
 
 - Supabase SSR session handling.
 - Sign in, password recovery, sign out, and MFA challenge.
+- Account profile updates, email-change confirmation, password changes that
+  require the current password, and TOTP enrollment/removal.
 - Server-side route guards and safe return paths.
 
 ### 3. Notification inbox

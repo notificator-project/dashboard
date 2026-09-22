@@ -1941,6 +1941,70 @@
   align-items: center;
   gap: 9px;
 }
+.device-status-summary {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #dfe4ee;
+  border-radius: 12px;
+  background: #fff;
+  padding: 6px 12px 6px 8px;
+  color: #344057;
+}
+.device-status-summary > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+.device-status-summary strong {
+  color: #202a40;
+  font-size: 12px;
+  line-height: 1.15;
+}
+.device-status-summary small {
+  color: #71809a;
+  font-size: 10px;
+  line-height: 1.15;
+}
+.device-status-summary-dot {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 9px;
+  background: #edf3ff;
+}
+.device-status-summary-dot i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 14%, transparent);
+}
+.device-status-summary.online {
+  border-color: #b7e4d5;
+  color: #087c58;
+}
+.device-status-summary.online .device-status-summary-dot {
+  background: #e9f8f2;
+}
+.device-status-summary.offline {
+  border-color: #e5c8cb;
+  color: #a63947;
+}
+.device-status-summary.offline .device-status-summary-dot {
+  background: #fff0f1;
+}
+.device-status-summary.paused {
+  border-color: #e4d6ad;
+  color: #8a6414;
+}
+.device-status-summary.paused .device-status-summary-dot {
+  background: #fff8e8;
+}
+.device-status-summary.unknown {
+  color: #647089;
+}
 .device-lifecycle-actions {
   display: flex;
   align-items: center;
@@ -1949,12 +2013,6 @@
 .device-lifecycle-actions .remove-device-button {
   border-color: #e5c8cb;
   color: #a63947;
-}
-.device-header-actions [data-slot='badge'] i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
 }
 .add-device-card {
   max-width: 760px;
@@ -2062,6 +2120,19 @@
   align-items: start;
   gap: 18px;
 }
+.account-page-grid .settings-field-grid input,
+.account-page-grid .account-security-email input {
+  height: 43px;
+  border: 1px solid #cfd8e8;
+  border-radius: 10px;
+  background: #fff;
+  color: #202a40;
+  font-size: 14px;
+}
+.account-page-grid .settings-form > button,
+.account-page-grid .account-security-email button {
+  min-height: 43px;
+}
 .settings-masonry-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2115,10 +2186,201 @@
   color: #59657c;
   font-size: 11px;
 }
+.account-security-form {
+  display: grid;
+  gap: 17px;
+  border-top: 1px solid #edf0f6;
+  padding-top: 20px;
+}
+.account-email-form {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #edf0f6;
+  padding-top: 19px;
+}
+.account-email-form > p {
+  margin: -2px 0 3px;
+  color: #59657c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.account-security-section {
+  display: grid;
+  gap: 12px;
+}
+.account-security-copy {
+  display: grid;
+  gap: 5px;
+}
+.account-security-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #202a40;
+  font-size: 13px;
+}
+.account-security-title svg {
+  width: 15px;
+  height: 15px;
+  color: #1f56db;
+}
+.account-security-copy p {
+  margin: 0;
+  color: #59657c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.account-security-email {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.account-security-email input {
+  min-width: 0;
+  flex: 1;
+}
+.account-security-email button,
+.account-mfa-section button {
+  flex: none;
+}
+.account-mfa-section {
+  border-top: 1px solid #edf0f6;
+  padding-top: 17px;
+}
+.account-mfa-enrollment {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  gap: 10px;
+  border: 1px solid #cfd8e8;
+  border-radius: 12px;
+  background: #f8faff;
+  padding: 14px;
+}
+.account-mfa-enrollment > div {
+  display: grid;
+  gap: 3px;
+}
+.account-mfa-enrollment > div:first-child {
+  grid-column: 1 / -1;
+}
+.account-mfa-enrollment strong {
+  color: #202a40;
+  font-size: 12px;
+}
+.account-mfa-enrollment p {
+  margin: 0;
+  color: #59657c;
+  font-size: 11px;
+}
+.account-mfa-enrollment img {
+  grid-column: 1;
+  grid-row: 2 / span 3;
+  width: 148px;
+  height: 148px;
+  border: 8px solid #fff;
+  border-radius: 9px;
+  box-shadow: 0 5px 16px rgba(24, 39, 75, 0.1);
+}
+.account-mfa-secret {
+  grid-column: 2;
+  align-self: end;
+}
+.account-mfa-secret span {
+  color: #59657c;
+  font-size: 11px;
+}
+.account-mfa-secret code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #344057;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.account-mfa-enrollment [data-slot='input-otp'] {
+  grid-column: 2;
+  max-width: 100%;
+}
+.account-mfa-enrollment > button {
+  grid-column: 2;
+  min-height: 39px;
+}
+.account-password-form {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid #edf0f6;
+  padding-top: 19px;
+}
+.account-password-form > p {
+  margin: -3px 0 2px;
+  color: #59657c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.account-password-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.account-password-fields label {
+  display: grid;
+  gap: 6px;
+  color: #263149;
+  font-size: 12px;
+  font-weight: 700;
+}
+.account-password-fields .account-password-current {
+  grid-column: 1 / -1;
+}
+.account-password-fields input {
+  height: 43px;
+  border: 1px solid #cfd8e8;
+  border-radius: 10px;
+  background: #fff;
+  color: #202a40;
+  font-size: 14px;
+}
+.account-password-input {
+  position: relative;
+  display: block;
+}
+.account-password-input input {
+  width: 100%;
+  padding-right: 42px;
+}
+.account-password-input button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  color: #65728a;
+}
+.account-password-input button svg {
+  width: 16px;
+  height: 16px;
+}
+.account-password-form > button {
+  min-height: 43px;
+  justify-self: start;
+}
+.account-disable-mfa {
+  border-color: #e5c8cb;
+  color: #a63947;
+}
+.account-disable-mfa:hover {
+  background: #fff4f4;
+  color: #90283a;
+}
 .settings-form {
   display: grid;
   justify-items: start;
   gap: 20px;
+  padding-bottom: 6px;
 }
 .settings-field-grid {
   display: grid;
@@ -2281,7 +2543,7 @@
   display: grid;
   gap: 0;
 }
-.security-summary > div:not(.security-note) {
+.security-summary > div:not(.security-note):not(.account-security-form) {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2295,6 +2557,62 @@
 .security-summary span {
   color: #59657c;
   font-size: 13px;
+}
+.security-mfa-status {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.security-mfa-status > i {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: #a63947;
+  box-shadow: 0 0 0 4px #fff0f1;
+}
+.security-mfa-status > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.security-mfa-status strong {
+  color: #202a40;
+  font-size: 13px;
+}
+.security-mfa-status small {
+  color: #59657c;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.security-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e5c8cb;
+  border-radius: 999px;
+  background: #fff7f7;
+  color: #a63947 !important;
+  padding: 5px 9px;
+  font-size: 11px !important;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.security-status-pill i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.security-status-pill.enabled {
+  border-color: #b7e4d5;
+  background: #effaf5;
+  color: #087c58 !important;
+}
+.security-mfa-row.enabled .security-mfa-status > i {
+  background: #087c58;
+  box-shadow: 0 0 0 4px #e9f8f2;
 }
 .security-note,
 .connection-setup-card {
@@ -2572,6 +2890,34 @@
     flex-direction: column;
     margin-inline: 18px;
     padding: 16px 0 22px;
+  }
+  .account-security-email {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .account-security-email button,
+  .account-mfa-section button {
+    justify-content: center;
+  }
+  .account-password-fields {
+    grid-template-columns: 1fr;
+  }
+  .account-password-form > button {
+    width: 100%;
+    justify-self: stretch;
+  }
+  .account-mfa-enrollment {
+    grid-template-columns: 1fr;
+  }
+  .account-mfa-enrollment > div:first-child,
+  .account-mfa-enrollment img,
+  .account-mfa-secret,
+  .account-mfa-enrollment [data-slot='input-otp'],
+  .account-mfa-enrollment > button {
+    grid-column: 1;
+  }
+  .account-mfa-enrollment img {
+    grid-row: auto;
   }
   .notification-list article {
     grid-template-columns: auto minmax(0, 1fr) auto auto;
