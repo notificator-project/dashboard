@@ -88,17 +88,20 @@ export function WebflowIntegrationManager({
   apiKeys: ApiKey[];
   connectedFromOAuth?: boolean;
 }) {
+  const initialSiteConnection = connectedFromOAuth
+    ? initialIntegrations.find((item) => !item.webflow_site_id) || initialIntegrations.find((item) => item.webflow_site_id) || initialIntegrations[0]
+    : initialIntegrations.find((item) => item.webflow_site_id) || initialIntegrations[0];
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [sites, setSites] = useState<Site[]>([]);
-  const [selectedSite, setSelectedSite] = useState(initialIntegrations[0]?.webflow_site_id || '');
-  const [selectedApiKey, setSelectedApiKey] = useState(initialIntegrations[0]?.api_key_id || '');
+  const [selectedSite, setSelectedSite] = useState(initialSiteConnection?.webflow_site_id || '');
+  const [selectedApiKey, setSelectedApiKey] = useState(initialSiteConnection?.api_key_id || '');
   const [loadingSites, setLoadingSites] = useState(false);
   const [savingSite, setSavingSite] = useState(false);
   const [changingSite, setChangingSite] = useState(false);
   const [addingSite, setAddingSite] = useState(false);
-  const [selectedIntegrationId, setSelectedIntegrationId] = useState(initialIntegrations.find((item) => item.webflow_site_id)?.id || initialIntegrations[0]?.id || '');
+  const [selectedIntegrationId, setSelectedIntegrationId] = useState(initialSiteConnection?.id || '');
   const [scenarioSiteFilter, setScenarioSiteFilter] = useState('all');
-  const [scenarioSiteIds, setScenarioSiteIds] = useState<string[]>([initialIntegrations.find((item) => item.webflow_site_id)?.id || initialIntegrations[0]?.id].filter(Boolean) as string[]);
+  const [scenarioSiteIds, setScenarioSiteIds] = useState<string[]>([initialSiteConnection?.id].filter(Boolean) as string[]);
   const [showScenarioForm, setShowScenarioForm] = useState(false);
   const [scenarioTrigger, setScenarioTrigger] = useState('form_submission');
   const [bodyTemplate, setBodyTemplate] = useState('A new form was submitted on your Webflow site.');
