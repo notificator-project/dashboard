@@ -12,15 +12,24 @@ async function currentClient() {
 export async function GET() {
   const { supabase, user } = await currentClient();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { data, error } = await supabase
+  const { data: integrations, error } = await supabase
     .from('webflow_integrations')
-    .select(
-      'id, webflow_site_id, webflow_site_name, api_key_id, status, created_at, updated_at, webflow_scenarios(id, name, trigger_type, webhook_id, form_name, title_template, body_template, severity, enabled, created_at)',
-    )
+    .select('id, webflow_site_id, webflow_site_name, api_key_id, status, created_at, updated_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: 'Unable to load integrations.' }, { status: 500 });
-  return NextResponse.json({ integrations: data || [] }, { headers: { 'cache-control': 'no-store' } });
+  const { data: scenarios } = await supabase
+    .from('webflow_scenarios')
+    .select('id, integration_id, name, trigger_type, webhook_id, form_name, title_template, body_template, severity, enabled, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+  const scenarioMap = new Map<string, NonNullable<typeof scenarios>>();
+  for (const scenario of scenarios || []) {
+    const current = scenarioMap.get(scenario.integration_id) || [];
+    current.push(scenario);
+    scenarioMap.set(scenario.integration_id, current);
+  }
+  return NextResponse.json({ integrations: (integrations || []).map((integration) => ({ ...integration, webflow_scenarios: scenarioMap.get(integration.id) || [] })) }, { headers: { 'cache-control': 'no-store' } });
 }
 
 export async function POST(request: Request) {

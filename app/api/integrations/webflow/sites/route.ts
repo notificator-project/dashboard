@@ -19,7 +19,19 @@ export async function GET() {
   const response = await fetch('https://api.webflow.com/v2/sites', {
     headers: { accept: 'application/json', authorization: `Bearer ${decryptWebflowSecret(integration.encrypted_access_token)}` },
   });
-  const body = await response.json();
-  if (!response.ok) return NextResponse.json({ error: 'Unable to load Webflow sites.' }, { status: 502 });
-  return NextResponse.json({ integrationId: integration.id, sites: body.sites || body });
+  const rawBody = await response.text();
+  let body: unknown = null;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    body = null;
+  }
+  if (!response.ok) {
+    const detail = body && typeof body === 'object' && 'message' in body && typeof body.message === 'string' ? body.message : `Webflow returned ${response.status}.`;
+    return NextResponse.json({ error: `Unable to load Webflow sites: ${detail}` }, { status: 502 });
+  }
+  const sites = body && typeof body === 'object' && 'sites' in body && Array.isArray(body.sites)
+    ? body.sites
+    : Array.isArray(body) ? body : [];
+  return NextResponse.json({ integrationId: integration.id, sites });
 }

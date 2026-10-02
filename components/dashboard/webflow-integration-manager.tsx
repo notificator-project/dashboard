@@ -83,10 +83,12 @@ export function WebflowIntegrationManager({
   initialIntegrations,
   apiKeys,
   connectedFromOAuth = false,
+  initialError = '',
 }: {
   initialIntegrations: Integration[];
   apiKeys: ApiKey[];
   connectedFromOAuth?: boolean;
+  initialError?: string;
 }) {
   const initialSiteConnection = connectedFromOAuth
     ? initialIntegrations.find((item) => !item.webflow_site_id) || initialIntegrations.find((item) => item.webflow_site_id) || initialIntegrations[0]
@@ -112,7 +114,7 @@ export function WebflowIntegrationManager({
   const [message, setMessage] = useState(
     connectedFromOAuth ? 'Webflow connected. Choose a site to continue.' : '',
   );
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
   const integration = integrations.find((item) => item.id === selectedIntegrationId) || integrations[0] || null;
   const connectedIntegrations = integrations.filter((item) => item.webflow_site_id);
   const allScenarios = Array.from(new Map(integrations.flatMap((item) => item.webflow_scenarios).map((scenario) => [scenario.id, scenario])).values());
@@ -131,6 +133,7 @@ export function WebflowIntegrationManager({
       return;
     }
     setSites(payload.sites || []);
+    if (!payload.sites?.length) setError('No Webflow sites were returned. Reconnect Webflow with the sites:read permission if needed.');
     if (payload.integrationId && !integrations.some((item) => item.id === payload.integrationId)) {
       const refreshed = await fetch('/api/integrations', { cache: 'no-store' });
       void refreshed;

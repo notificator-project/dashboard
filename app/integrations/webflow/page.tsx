@@ -17,13 +17,18 @@ export default async function WebflowIntegrationPage({
 }) {
   const user = await requireUser('/integrations/webflow');
   const supabase = await createClient();
-  const [overview, { data: integrations }, { data: assignments }, { data: apiKeys }] = await Promise.all([
+  const [overview, { data: integrations, error: integrationsError }, { data: scenarios, error: scenariosError }, { data: assignments }, { data: apiKeys }] = await Promise.all([
     loadDashboardShellOverview(user),
     supabase
       .from('webflow_integrations')
       .select(
-        'id, webflow_site_id, webflow_site_name, api_key_id, status, webflow_scenarios(id, name, trigger_type, form_name, title_template, body_template, severity, enabled, webhook_id, created_at)',
+        'id, webflow_site_id, webflow_site_name, api_key_id, status',
       )
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('webflow_scenarios')
+      .select('id, integration_id, name, trigger_type, form_name, title_template, body_template, severity, enabled, webhook_id, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -66,14 +71,14 @@ export default async function WebflowIntegrationPage({
         <div className="webflow-page-hero-trust"><ShieldCheck /><span>OAuth credentials stay encrypted</span></div>
       </section>
       <WebflowIntegrationManager
+        initialError={integrationsError ? `Unable to load the Webflow connection: ${integrationsError.message}` : scenariosError ? `Unable to load Webflow scenarios: ${scenariosError.message}` : ''}
         initialIntegrations={(integrations || []).map((integration) => ({
           id: String(integration.id),
           webflow_site_id: integration.webflow_site_id,
           webflow_site_name: integration.webflow_site_name,
           api_key_id: integration.api_key_id,
           status: integration.status,
-          webflow_scenarios: Array.isArray(integration.webflow_scenarios)
-            ? integration.webflow_scenarios.map((scenario) => ({
+          webflow_scenarios: (scenarios || []).filter((scenario) => scenario.integration_id === integration.id).map((scenario) => ({
                 id: String(scenario.id),
                 name: scenario.name,
                 trigger_type: scenario.trigger_type,
@@ -87,8 +92,7 @@ export default async function WebflowIntegrationPage({
                   .filter((assignment) => assignment.scenario_id === scenario.id)
                   .map((assignment) => String(assignment.integration_id)),
                 created_at: scenario.created_at,
-              }))
-            : [],
+              })),
         }))}
         apiKeys={(apiKeys || []).map((key) => ({
           id: String(key.id),
