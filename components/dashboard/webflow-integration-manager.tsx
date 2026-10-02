@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
-import { CheckCircle2, Edit3, ExternalLink, Globe2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, Edit3, ExternalLink, Globe2, LoaderCircle, PauseCircle, PlayCircle, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -95,12 +95,14 @@ export function WebflowIntegrationManager({
     : initialIntegrations.find((item) => item.webflow_site_id) || initialIntegrations[0];
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [sites, setSites] = useState<Site[]>([]);
+  const [sitesLoaded, setSitesLoaded] = useState(false);
   const [selectedSite, setSelectedSite] = useState(initialSiteConnection?.webflow_site_id || '');
   const [selectedApiKey, setSelectedApiKey] = useState(initialSiteConnection?.api_key_id || '');
   const [loadingSites, setLoadingSites] = useState(false);
   const [savingSite, setSavingSite] = useState(false);
   const [changingSite, setChangingSite] = useState(false);
   const [addingSite, setAddingSite] = useState(false);
+  const [editingSiteId, setEditingSiteId] = useState<string | null>(null);
   const [selectedIntegrationId, setSelectedIntegrationId] = useState(initialSiteConnection?.id || '');
   const [scenarioSiteFilter, setScenarioSiteFilter] = useState('all');
   const [scenarioSiteIds, setScenarioSiteIds] = useState<string[]>([initialSiteConnection?.id].filter(Boolean) as string[]);
@@ -117,6 +119,7 @@ export function WebflowIntegrationManager({
   const [error, setError] = useState(initialError);
   const integration = integrations.find((item) => item.id === selectedIntegrationId) || integrations[0] || null;
   const connectedIntegrations = integrations.filter((item) => item.webflow_site_id);
+  const canAddSite = !sitesLoaded || sites.length > connectedIntegrations.length;
   const allScenarios = Array.from(new Map(integrations.flatMap((item) => item.webflow_scenarios).map((scenario) => [scenario.id, scenario])).values());
   const visibleScenarios = scenarioSiteFilter === 'all'
     ? allScenarios
@@ -125,11 +128,22 @@ export function WebflowIntegrationManager({
   const loadSites = useCallback(async () => {
     setLoadingSites(true);
     setError('');
-    const response = await fetch('/api/integrations/webflow/sites', { cache: 'no-store' });
-    const payload = (await response.json()) as { sites?: Site[]; integrationId?: string; error?: string };
+    let response: Response;
+    let payload: { sites?: Site[]; integrationId?: string; error?: string } = {};
+    try {
+      response = await fetch('/api/integrations/webflow/sites', { cache: 'no-store' });
+      const rawBody = await response.text();
+      if (rawBody.trim()) payload = JSON.parse(rawBody) as typeof payload;
+    } catch (error) {
+      setLoadingSites(false);
+      setSitesLoaded(true);
+      setError(error instanceof Error ? `Unable to load Webflow sites: ${error.message}` : 'Unable to load Webflow sites. The local dashboard server returned an empty response.');
+      return;
+    }
     setLoadingSites(false);
+    setSitesLoaded(true);
     if (!response.ok) {
-      setError(payload.error || 'Unable to load Webflow sites.');
+      setError(payload.error || `Unable to load Webflow sites (HTTP ${response.status}).`);
       return;
     }
     setSites(payload.sites || []);
@@ -141,10 +155,10 @@ export function WebflowIntegrationManager({
   }, [integrations]);
 
   useEffect(() => {
-    if (!integration || (integration.webflow_site_id && !addingSite)) return;
+    if (!integration || (sitesLoaded && !addingSite)) return;
     const timer = window.setTimeout(() => void loadSites(), 0);
     return () => window.clearTimeout(timer);
-  }, [integration, addingSite, loadSites]);
+  }, [integration, addingSite, sitesLoaded, loadSites]);
 
   async function saveSite() {
     if (!integration || !selectedSite || !selectedApiKey) return;
@@ -166,10 +180,10 @@ export function WebflowIntegrationManager({
       ? [...current.filter((item) => item.id !== payload.integration!.id), { ...payload.integration!, webflow_scenarios: [] }]
       : current.map((item) => item.id === integration.id ? { ...item, webflow_site_id: payload.integration!.webflow_site_id, webflow_site_name: payload.integration!.webflow_site_name, api_key_id: payload.integration!.api_key_id } : item));
     setSelectedIntegrationId(payload.integration.id);
-    setScenarioSiteFilter(payload.integration.id);
     setScenarioSiteIds([payload.integration.id]);
     setChangingSite(false);
     setAddingSite(false);
+    setEditingSiteId(null);
     setMessage('Webflow site and delivery key saved. Add a scenario below.');
   }
 
@@ -181,6 +195,33 @@ export function WebflowIntegrationManager({
       return;
     }
     window.location.reload();
+  }
+
+  async function updateSiteStatus(site: Integration) {
+    const nextStatus = site.status === 'disabled' ? 'connected' : 'disabled';
+    const response = await fetch('/api/integrations/webflow', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: site.id, status: nextStatus }) });
+    const payload = (await response.json()) as { integration?: Integration; error?: string };
+    if (!response.ok || !payload.integration) {
+      setError(payload.error || 'Unable to update the Webflow site status.');
+      return;
+    }
+    setIntegrations((current) => current.map((item) => item.id === site.id ? { ...item, status: payload.integration!.status } : item));
+    setMessage(nextStatus === 'disabled' ? 'Webflow delivery paused for this site.' : 'Webflow delivery resumed for this site.');
+  }
+
+  async function disconnectSite(site: Integration) {
+    if (!window.confirm(`Remove ${site.webflow_site_name || site.webflow_site_id || 'this Webflow site'}? Its scenarios will no longer receive events from this site.`)) return;
+    const response = await fetch(`/api/integrations/webflow?id=${encodeURIComponent(site.id)}`, { method: 'DELETE' });
+    if (!response.ok) {
+      setError('Unable to remove the Webflow site.');
+      return;
+    }
+    setIntegrations((current) => current.filter((item) => item.id !== site.id));
+    if (selectedIntegrationId === site.id) {
+      const next = connectedIntegrations.find((item) => item.id !== site.id);
+      setSelectedIntegrationId(next?.id || '');
+      setSelectedApiKey(next?.api_key_id || '');
+    }
   }
 
   async function saveScenario(event: SyntheticEvent<HTMLFormElement>) {
@@ -272,24 +313,22 @@ export function WebflowIntegrationManager({
                 <span>Account-managed OAuth connection</span>
               </div>
             </div>
-            <div className="webflow-manager-header-actions"><Badge variant="outline" className="integration-page-status"><i /> Connected</Badge><Button type="button" variant="outline" onClick={() => { setAddingSite(true); setChangingSite(false); setSelectedSite(''); setSelectedApiKey(''); void loadSites(); }}>Add site</Button>{integration.webflow_site_id ? <Button type="button" variant="outline" onClick={() => void disconnect()}>Disconnect</Button> : null}</div>
+            <div className="webflow-manager-header-actions"><Badge variant="outline" className="integration-page-status"><i /> {integration.status === 'disabled' ? 'Paused' : 'Connected'}</Badge>{canAddSite ? <Button type="button" variant="outline" onClick={() => { setAddingSite(true); setChangingSite(false); setSelectedSite(''); setSelectedApiKey(''); void loadSites(); }}>Add site</Button> : null}{integration.webflow_site_id ? <Button type="button" variant="outline" onClick={() => void disconnect()}>Disconnect</Button> : null}</div>
           </div>
-          {integration.webflow_site_id && !changingSite && !addingSite ? (
+          {connectedIntegrations.length ? <div className="webflow-connected-sites" aria-label="Connected Webflow sites"><div className="webflow-connected-sites-heading"><strong>Connected sites</strong><span>{connectedIntegrations.length} site{connectedIntegrations.length === 1 ? '' : 's'} connected</span></div><div className="webflow-connected-sites-list">{connectedIntegrations.map((item) => <div key={item.id} className={`webflow-connected-site-card${item.id === editingSiteId ? ' is-selected' : ''}`}><Globe2 /><span><strong>{item.webflow_site_name || item.webflow_site_id}</strong><small>{item.webflow_site_id}</small></span><em className={item.status === 'disabled' ? 'is-paused' : ''}>{item.status === 'disabled' ? 'Paused' : item.api_key_id ? 'API key assigned' : 'Needs API key'}</em><div className="webflow-connected-site-actions"><button type="button" onClick={() => { setSelectedIntegrationId(item.id); setSelectedApiKey(item.api_key_id || ''); setEditingSiteId(item.id); }} aria-label={`Edit ${item.webflow_site_name || item.webflow_site_id}`} title="Edit site"><Edit3 /></button><button type="button" onClick={() => void updateSiteStatus(item)} aria-label={item.status === 'disabled' ? `Resume ${item.webflow_site_name || item.webflow_site_id}` : `Pause ${item.webflow_site_name || item.webflow_site_id}`} title={item.status === 'disabled' ? 'Resume delivery' : 'Pause delivery'}>{item.status === 'disabled' ? <PlayCircle /> : <PauseCircle />}</button><button type="button" onClick={() => void disconnectSite(item)} aria-label={`Delete ${item.webflow_site_name || item.webflow_site_id}`} title="Delete site"><Trash2 /></button></div></div>)}</div></div> : null}
+          {editingSiteId && integration.id === editingSiteId && integration.webflow_site_id && !changingSite && !addingSite ? (
             <div className="webflow-connected-site">
               <div><span>Connected site</span><strong>{integration.webflow_site_name || integration.webflow_site_id}</strong><small>Scenarios can be assigned to one or more connected sites.</small></div>
               <div className="webflow-connected-site-actions">
-                <select value={integration.id} onChange={(event) => { const next = integrations.find((item) => item.id === event.target.value); setSelectedIntegrationId(event.target.value); setSelectedApiKey(next?.api_key_id || ''); setScenarioSiteFilter(event.target.value); }} aria-label="Connected Webflow site">
-                  {connectedIntegrations.map((item) => <option key={item.id} value={item.id}>{item.webflow_site_name || item.webflow_site_id}</option>)}
-                </select>
                 <select value={selectedApiKey} onChange={(event) => setSelectedApiKey(event.target.value)} aria-label="Webflow site API key">
                   <option value="">Select an active API key</option>
                   {apiKeys.map((key) => <option key={key.id} value={key.id}>{key.name} · {keyTypeLabel(key.keyType)}</option>)}
                 </select>
                 <Button type="button" onClick={() => void saveSite()} disabled={!selectedApiKey || savingSite}>{savingSite ? <LoaderCircle className="spin" /> : null} Save key</Button>
-                <Button type="button" variant="outline" onClick={() => { setChangingSite(true); setSelectedSite(integration.webflow_site_id || ''); void loadSites(); }}>Change site</Button>
+                <Button type="button" variant="outline" onClick={() => setEditingSiteId(null)}>Cancel</Button>
               </div>
             </div>
-          ) : (
+          ) : addingSite ? (
             <div className="webflow-site-picker">
               <div><strong>{addingSite ? 'Add another Webflow site' : 'Choose a Webflow site'}</strong><span>Each connected site can use its own Notificator API key.</span></div>
               <div className="webflow-site-picker-controls">
@@ -304,7 +343,7 @@ export function WebflowIntegrationManager({
                 <Button type="button" onClick={saveSite} disabled={!selectedSite || !selectedApiKey || savingSite}>{savingSite ? <LoaderCircle className="spin" /> : null} {addingSite ? 'Add site' : 'Save site'}</Button>
               </div>
             </div>
-          )}
+          ) : null}
           {connectedIntegrations.length ? (
             <div className="webflow-scenarios">
               <div className="webflow-section-heading"><div><strong>Notification scenarios</strong><span>Choose which Webflow events should reach Notificator.</span></div><div className="webflow-section-heading-actions"><select value={scenarioSiteFilter} onChange={(event) => setScenarioSiteFilter(event.target.value)} aria-label="Filter scenarios by Webflow site"><option value="all">All connected sites</option>{connectedIntegrations.map((item) => <option key={item.id} value={item.id}>{item.webflow_site_name || item.webflow_site_id}</option>)}</select><Button type="button" onClick={() => { setEditingScenario(null); setScenarioSiteIds([integration?.id || connectedIntegrations[0].id]); setShowScenarioForm((value) => !value); }}><Plus /> Add scenario</Button></div></div>

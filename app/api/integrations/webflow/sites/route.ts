@@ -16,9 +16,19 @@ export async function GET() {
     .limit(1)
     .maybeSingle();
   if (error || !integration) return NextResponse.json({ sites: [] });
-  const response = await fetch('https://api.webflow.com/v2/sites', {
-    headers: { accept: 'application/json', authorization: `Bearer ${decryptWebflowSecret(integration.encrypted_access_token)}` },
-  });
+  let response: Response;
+  try {
+    response = await fetch('https://api.webflow.com/v2/sites', {
+      headers: { accept: 'application/json', authorization: `Bearer ${decryptWebflowSecret(integration.encrypted_access_token)}` },
+    });
+  } catch (error) {
+    console.error('Unable to request Webflow sites', error);
+    const detail = error instanceof Error ? error.message : '';
+    const encryptionFailure = detail.includes('WEBFLOW_ENCRYPTION_KEY') || detail.includes('Unsupported state') || detail.includes('unable to authenticate data');
+    return NextResponse.json({ error: encryptionFailure
+      ? 'Unable to load Webflow sites. Local WEBFLOW_ENCRYPTION_KEY does not match the key used to save this connection.'
+      : 'Unable to load Webflow sites. The saved Webflow connection could not be decrypted or reached.' }, { status: 502 });
+  }
   const rawBody = await response.text();
   let body: unknown = null;
   try {

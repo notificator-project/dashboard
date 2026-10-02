@@ -61,6 +61,18 @@ export async function PATCH(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = (await request.json()) as Record<string, unknown>;
   const id = typeof body.id === 'string' ? body.id : '';
+  const requestedStatus = typeof body.status === 'string' ? body.status : '';
+  if (id && (requestedStatus === 'connected' || requestedStatus === 'disabled')) {
+    const { data, error } = await supabase
+      .from('webflow_integrations')
+      .update({ status: requestedStatus, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('id, webflow_site_id, webflow_site_name, api_key_id, status')
+      .maybeSingle();
+    if (error || !data) return NextResponse.json({ error: 'Unable to update the Webflow site status.' }, { status: error ? 500 : 404 });
+    return NextResponse.json({ integration: data });
+  }
   const siteId = typeof body.siteId === 'string' ? body.siteId.trim() : '';
   const siteName = typeof body.siteName === 'string' ? body.siteName.trim() : '';
   const apiKeyId = typeof body.apiKeyId === 'string' ? body.apiKeyId.trim() : '';
@@ -90,6 +102,19 @@ export async function DELETE(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const id = new URL(request.url).searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Integration not found.' }, { status: 400 });
+  const { data: primaryScenarios } = await supabase.from('webflow_scenarios').select('id').eq('integration_id', id).eq('user_id', user.id);
+  for (const scenario of primaryScenarios || []) {
+    const { data: replacement } = await supabase
+      .from('webflow_scenario_sites')
+      .select('integration_id, webhook_id')
+      .eq('scenario_id', scenario.id)
+      .neq('integration_id', id)
+      .limit(1)
+      .maybeSingle();
+    if (replacement) {
+      await supabase.from('webflow_scenarios').update({ integration_id: replacement.integration_id, webhook_id: replacement.webhook_id, updated_at: new Date().toISOString() }).eq('id', scenario.id).eq('user_id', user.id);
+    }
+  }
   const { error } = await supabase.from('webflow_integrations').delete().eq('id', id).eq('user_id', user.id);
   if (error) return NextResponse.json({ error: 'Unable to disconnect Webflow.' }, { status: 500 });
   return NextResponse.json({ ok: true });
