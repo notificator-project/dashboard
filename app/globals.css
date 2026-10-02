@@ -1672,6 +1672,109 @@
   background: #f8faff;
   padding: 14px;
 }
+.webflow-connected-sites {
+  display: grid;
+  gap: 10px;
+}
+.webflow-connected-sites-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.webflow-connected-sites-heading strong {
+  color: #202a40;
+  font-size: 13px;
+}
+.webflow-connected-sites-heading span {
+  color: #65728a;
+  font-size: 12px;
+}
+.webflow-connected-sites-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+.webflow-connected-site-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #e0e6f0;
+  border-radius: 12px;
+  background: #f8faff;
+  color: #202a40;
+  padding: 10px;
+  text-align: left;
+  cursor: default;
+}
+.webflow-connected-site-card:hover,
+.webflow-connected-site-card.is-selected {
+  border-color: #9bb5fa;
+  background: #f0f5ff;
+}
+.webflow-connected-site-card > svg {
+  width: 17px;
+  flex: none;
+  color: #2859dc;
+}
+.webflow-connected-site-card > span {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+.webflow-connected-site-card strong,
+.webflow-connected-site-card small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.webflow-connected-site-card strong {
+  font-size: 12px;
+}
+.webflow-connected-site-card small {
+  color: #65728a;
+  font-size: 10px;
+}
+.webflow-connected-site-card em {
+  color: #087c58;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.webflow-connected-site-card em.is-paused {
+  color: #9a6200;
+}
+.webflow-connected-site-card .webflow-connected-site-actions {
+  display: flex !important;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
+.webflow-connected-site-card .webflow-connected-site-actions button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #53617a;
+  cursor: pointer;
+}
+.webflow-connected-site-card .webflow-connected-site-actions button:hover {
+  background: #e7eeff;
+  color: #2859dc;
+}
+.webflow-connected-site-card .webflow-connected-site-actions button:last-child:hover {
+  background: #fff0f1;
+  color: #a63947;
+}
+.webflow-connected-site-card .webflow-connected-site-actions svg {
+  width: 15px;
+}
 .webflow-connected-site-actions {
   display: flex !important;
   align-items: center;
@@ -1873,8 +1976,12 @@
 .webflow-scenario-row button svg {
   width: 16px;
 }
-.webflow-scenario-actions {
+.webflow-scenario-row > .webflow-scenario-actions {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: max-content;
+  min-width: 68px;
   align-items: center;
   justify-content: flex-end;
   gap: 2px;
@@ -1894,7 +2001,7 @@
 .webflow-scenario-table-head,
 .webflow-scenario-row {
   display: grid;
-  grid-template-columns: minmax(170px, 1.4fr) minmax(130px, 0.9fr) minmax(110px, 0.8fr) minmax(90px, 0.7fr) 34px;
+  grid-template-columns: minmax(170px, 1.4fr) minmax(130px, 0.9fr) minmax(110px, 0.8fr) minmax(90px, 0.7fr) 72px;
   align-items: center;
   gap: 14px;
   padding-inline: 14px;
