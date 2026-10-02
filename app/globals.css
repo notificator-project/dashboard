@@ -1616,6 +1616,22 @@
   display: grid;
   gap: 3px;
 }
+.webflow-section-heading-actions {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+.webflow-section-heading-actions select {
+  min-height: 36px;
+  max-width: 220px;
+  border: 1px solid #cfd8e8;
+  border-radius: 9px;
+  background: #fff;
+  color: #202a40;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+}
 .webflow-manager-title {
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -1793,6 +1809,44 @@
 .webflow-scenario-active input {
   min-height: 0;
   width: 16px;
+  accent-color: #2859dc;
+}
+.webflow-scenario-sites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+  border: 1px solid #dfe4ee;
+  border-radius: 10px;
+  color: #59657c;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.webflow-scenario-sites legend {
+  padding: 0 4px;
+  color: #59657c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.webflow-scenario-sites > span {
+  width: 100%;
+}
+.webflow-scenario-sites label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #202a40;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.webflow-scenario-sites input {
+  min-height: 0;
+  width: 15px;
   accent-color: #2859dc;
 }
 .webflow-scenario-row {
@@ -2030,6 +2084,14 @@
     width: 100%;
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+  .webflow-section-heading-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .webflow-section-heading-actions select {
+    max-width: none;
   }
 }
 .integrations-page-grid {

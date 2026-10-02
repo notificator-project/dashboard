@@ -47,15 +47,22 @@ export async function POST(request: Request) {
       .eq('status', 'connected')
       .maybeSingle();
     if (!integration) return NextResponse.json({ accepted: true });
-    const { data: scenario } = await supabase
+    const { data: assignments } = await supabase
+      .from('webflow_scenario_sites')
+      .select('scenario_id')
+      .eq('integration_id', integration.id);
+    const assignmentIds = (assignments || []).map((item) => item.scenario_id);
+    let scenarioQuery = supabase
       .from('webflow_scenarios')
       .select('form_name, title_template, body_template, severity')
-      .eq('integration_id', integration.id)
       .eq('trigger_type', event.triggerType || 'form_submission')
       .eq('enabled', true)
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+    scenarioQuery = assignmentIds.length
+      ? scenarioQuery.in('id', assignmentIds)
+      : scenarioQuery.eq('integration_id', integration.id);
+    const { data: scenario } = await scenarioQuery.maybeSingle();
     if (!integration.api_key_id || !scenario || (scenario.form_name && scenario.form_name !== payload.name)) {
       return NextResponse.json({ accepted: true });
     }

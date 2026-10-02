@@ -17,7 +17,7 @@ export default async function WebflowIntegrationPage({
 }) {
   const user = await requireUser('/integrations/webflow');
   const supabase = await createClient();
-  const [overview, { data: integrations }, { data: apiKeys }] = await Promise.all([
+  const [overview, { data: integrations }, { data: assignments }, { data: apiKeys }] = await Promise.all([
     loadDashboardShellOverview(user),
     supabase
       .from('webflow_integrations')
@@ -26,6 +26,10 @@ export default async function WebflowIntegrationPage({
       )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('webflow_scenario_sites')
+      .select('scenario_id, integration_id, webhook_id')
+      .order('created_at', { ascending: true }),
     supabase
       .from('api_keys')
       .select('id, name, key_type')
@@ -42,7 +46,7 @@ export default async function WebflowIntegrationPage({
       overview={overview}
       eyebrow="WEBSITE AUTOMATION"
       title="Webflow"
-      description="Connect Webflow to your account, then create scenarios for form submissions."
+      description="Connect one or more Webflow sites, then route selected events into reusable notification scenarios."
       action={
         <Link
           href="/integrations"
@@ -57,7 +61,7 @@ export default async function WebflowIntegrationPage({
         <div>
           <p>ACCOUNT CONNECTION</p>
           <h2>Bring Webflow events into Notificator</h2>
-          <span>Authorize Webflow once, choose a site, and route form submissions through an API key you control.</span>
+          <span>Authorize Webflow once, connect the sites you need, and route selected events through API keys you control.</span>
         </div>
         <div className="webflow-page-hero-trust"><ShieldCheck /><span>OAuth credentials stay encrypted</span></div>
       </section>
@@ -79,6 +83,9 @@ export default async function WebflowIntegrationPage({
                 severity: scenario.severity,
                 enabled: scenario.enabled,
                 webhook_id: scenario.webhook_id,
+                integration_ids: (assignments || [])
+                  .filter((assignment) => assignment.scenario_id === scenario.id)
+                  .map((assignment) => String(assignment.integration_id)),
                 created_at: scenario.created_at,
               }))
             : [],
