@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   Bell,
+  Blocks,
   CircleUserRound,
   KeyRound,
   LayoutDashboard,
@@ -27,6 +28,7 @@ const navigation = [
   { label: 'Overview', icon: LayoutDashboard, href: '/' },
   { label: 'Notifications', icon: Bell, href: '/notifications' },
   { label: 'Devices', icon: MonitorSmartphone, href: '/devices' },
+  { label: 'Integrations', icon: Blocks, href: '/integrations' },
   { label: 'API keys', icon: KeyRound, href: '/api-keys' },
   { label: 'Account', icon: CircleUserRound, href: '/account' },
 ];
