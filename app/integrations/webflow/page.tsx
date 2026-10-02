@@ -22,7 +22,7 @@ export default async function WebflowIntegrationPage({
     supabase
       .from('webflow_integrations')
       .select(
-        'id, webflow_site_id, webflow_site_name, api_key_id, status, webflow_scenarios(id, name, form_name, severity, enabled, webhook_id, created_at)',
+        'id, webflow_site_id, webflow_site_name, api_key_id, status, webflow_scenarios(id, name, trigger_type, form_name, title_template, body_template, severity, enabled, webhook_id, created_at)',
       )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
@@ -72,7 +72,10 @@ export default async function WebflowIntegrationPage({
             ? integration.webflow_scenarios.map((scenario) => ({
                 id: String(scenario.id),
                 name: scenario.name,
+                trigger_type: scenario.trigger_type,
                 form_name: scenario.form_name,
+                title_template: scenario.title_template,
+                body_template: scenario.body_template,
                 severity: scenario.severity,
                 enabled: scenario.enabled,
                 webhook_id: scenario.webhook_id,

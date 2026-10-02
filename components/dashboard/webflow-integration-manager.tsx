@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { CheckCircle2, ExternalLink, Globe2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
+import { CheckCircle2, Edit3, ExternalLink, Globe2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -10,7 +10,10 @@ type Site = { id: string; displayName?: string; name?: string };
 type Scenario = {
   id: string;
   name: string;
+  trigger_type: string;
   form_name: string | null;
+  title_template: string;
+  body_template: string;
   severity: string;
   enabled: boolean;
   webhook_id: string | null;
@@ -37,6 +40,44 @@ function severityLabel(value: string) {
   return 'Information';
 }
 
+const triggerOptions = [
+  ['form_submission', 'Form submission'],
+  ['site_publish', 'Site published'],
+  ['page_created', 'Page created'],
+  ['page_metadata_updated', 'Page metadata updated'],
+  ['page_deleted', 'Page deleted'],
+  ['collection_item_created', 'CMS item created'],
+  ['collection_item_changed', 'CMS item changed'],
+  ['collection_item_deleted', 'CMS item deleted'],
+  ['collection_item_published', 'CMS item published'],
+  ['collection_item_unpublished', 'CMS item unpublished'],
+  ['ecomm_new_order', 'New ecommerce order'],
+  ['ecomm_order_changed', 'Ecommerce order changed'],
+  ['ecomm_inventory_changed', 'Ecommerce inventory changed'],
+  ['comment_created', 'Comment created'],
+] as const;
+
+const triggerFields: Record<string, string[]> = {
+  form_submission: ['{{name}}', '{{siteId}}', '{{data}}', '{{triggerType}}'],
+  site_publish: ['{{site}}', '{{publishTime}}', '{{publishScope}}', '{{publishedBy.displayName}}', '{{domains}}', '{{triggerType}}'],
+  page_created: ['{{siteId}}', '{{pageId}}', '{{pageTitle}}', '{{createdOn}}', '{{triggerType}}'],
+  page_metadata_updated: ['{{siteId}}', '{{pageId}}', '{{pageTitle}}', '{{lastUpdated}}', '{{triggerType}}'],
+  page_deleted: ['{{siteId}}', '{{pageId}}', '{{pageTitle}}', '{{triggerType}}'],
+  collection_item_created: ['{{id}}', '{{siteId}}', '{{collectionId}}', '{{fieldData.name}}', '{{fieldData.slug}}', '{{createdOn}}', '{{isDraft}}', '{{triggerType}}'],
+  collection_item_changed: ['{{id}}', '{{siteId}}', '{{collectionId}}', '{{fieldData.name}}', '{{fieldData.slug}}', '{{lastUpdated}}', '{{triggerType}}'],
+  collection_item_deleted: ['{{id}}', '{{siteId}}', '{{collectionId}}', '{{triggerType}}'],
+  collection_item_published: ['{{id}}', '{{siteId}}', '{{collectionId}}', '{{fieldData.name}}', '{{fieldData.slug}}', '{{lastPublished}}', '{{triggerType}}'],
+  collection_item_unpublished: ['{{id}}', '{{siteId}}', '{{collectionId}}', '{{fieldData.name}}', '{{fieldData.slug}}', '{{triggerType}}'],
+  ecomm_new_order: ['{{orderId}}', '{{status}}', '{{customer}}', '{{shipping}}', '{{items}}', '{{triggerType}}'],
+  ecomm_order_changed: ['{{orderId}}', '{{status}}', '{{customer}}', '{{items}}', '{{triggerType}}'],
+  ecomm_inventory_changed: ['{{itemId}}', '{{quantity}}', '{{inventoryType}}', '{{triggerType}}'],
+  comment_created: ['{{id}}', '{{siteId}}', '{{comment}}', '{{author}}', '{{createdOn}}', '{{triggerType}}'],
+};
+
+function triggerLabel(value: string) {
+  return triggerOptions.find(([key]) => key === value)?.[1] || value;
+}
+
 export function WebflowIntegrationManager({
   initialIntegrations,
   apiKeys,
@@ -54,8 +95,12 @@ export function WebflowIntegrationManager({
   const [savingSite, setSavingSite] = useState(false);
   const [changingSite, setChangingSite] = useState(false);
   const [showScenarioForm, setShowScenarioForm] = useState(false);
+  const [scenarioTrigger, setScenarioTrigger] = useState('form_submission');
+  const [bodyTemplate, setBodyTemplate] = useState('A new form was submitted on your Webflow site.');
+  const bodyTemplateRef = useRef<HTMLTextAreaElement>(null);
   const [savingScenario, setSavingScenario] = useState(false);
   const [removingScenario, setRemovingScenario] = useState('');
+  const [editingScenario, setEditingScenario] = useState<Scenario | null>(null);
   const [message, setMessage] = useState(
     connectedFromOAuth ? 'Webflow connected. Choose a site to continue.' : '',
   );
@@ -116,27 +161,30 @@ export function WebflowIntegrationManager({
     window.location.reload();
   }
 
-  async function createScenario(event: SyntheticEvent<HTMLFormElement>) {
+  async function saveScenario(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!integration) return;
     setSavingScenario(true);
     setError('');
     const values = Object.fromEntries(new FormData(event.currentTarget));
-    const response = await fetch('/api/integrations/webflow/scenarios', {
-      method: 'POST',
+    const response = await fetch(editingScenario ? `/api/integrations/webflow/scenarios/${encodeURIComponent(editingScenario.id)}` : '/api/integrations/webflow/scenarios', {
+      method: editingScenario ? 'PATCH' : 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ integrationId: integration.id, ...values }),
     });
     const payload = (await response.json()) as { scenario?: Scenario; error?: string };
     setSavingScenario(false);
     if (!response.ok || !payload.scenario) {
-      setError(payload.error || 'Unable to create the scenario.');
+      setError(payload.error || `Unable to ${editingScenario ? 'update' : 'create'} the scenario.`);
       return;
     }
-    setIntegrations((current) => current.map((item) => item.id === integration.id ? { ...item, webflow_scenarios: [payload.scenario!, ...item.webflow_scenarios] } : item));
+    setIntegrations((current) => current.map((item) => item.id === integration.id ? { ...item, webflow_scenarios: editingScenario ? item.webflow_scenarios.map((scenario) => scenario.id === payload.scenario!.id ? payload.scenario! : scenario) : [payload.scenario!, ...item.webflow_scenarios] } : item));
     event.currentTarget.reset();
+    setScenarioTrigger('form_submission');
+    setBodyTemplate('A new form was submitted on your Webflow site.');
+    setEditingScenario(null);
     setShowScenarioForm(false);
-    setMessage('Scenario created. Publish your Webflow site and submit a form to test it.');
+    setMessage(editingScenario ? 'Scenario updated.' : 'Scenario created. Publish your Webflow site and submit a form to test it.');
   }
 
   async function removeScenario(id: string) {
@@ -151,6 +199,28 @@ export function WebflowIntegrationManager({
       return;
     }
     setIntegrations((current) => current.map((item) => item.id === integration?.id ? { ...item, webflow_scenarios: item.webflow_scenarios.filter((scenario) => scenario.id !== id) } : item));
+  }
+
+  function insertBodyField(field: string) {
+    const textarea = bodyTemplateRef.current;
+    const start = textarea?.selectionStart ?? bodyTemplate.length;
+    const end = textarea?.selectionEnd ?? bodyTemplate.length;
+    const nextValue = `${bodyTemplate.slice(0, start)}${field}${bodyTemplate.slice(end)}`;
+    setBodyTemplate(nextValue);
+    window.requestAnimationFrame(() => {
+      if (!textarea) return;
+      const cursor = start + field.length;
+      textarea.focus();
+      textarea.setSelectionRange(cursor, cursor);
+    });
+  }
+
+  function editScenario(scenario: Scenario) {
+    setEditingScenario(scenario);
+    setScenarioTrigger(scenario.trigger_type);
+    setBodyTemplate(scenario.body_template);
+    setShowScenarioForm(true);
+    setError('');
   }
 
   return (
@@ -208,12 +278,20 @@ export function WebflowIntegrationManager({
             <div className="webflow-scenarios">
               <div className="webflow-section-heading"><div><strong>Notification scenarios</strong><span>Choose which Webflow events should reach Notificator.</span></div><Button type="button" onClick={() => setShowScenarioForm((value) => !value)}><Plus /> Add scenario</Button></div>
               {showScenarioForm ? (
-                <form className="webflow-scenario-form" onSubmit={createScenario}>
-                  <label>Scenario name<input name="name" required placeholder="Contact form submissions" /></label>
-                  <label>Form name (optional)<input name="formName" placeholder="Contact Form" /></label>
-                  <div className="webflow-form-row"><label>Severity<select name="severity" defaultValue="info"><option value="info">Information</option><option value="warning">Warning</option><option value="critical">Critical</option></select></label><label>Title template<input name="titleTemplate" defaultValue="New Webflow form submission" /></label></div>
-                  <label>Body template<textarea name="bodyTemplate" defaultValue="A new form was submitted on your Webflow site." rows={3} /></label>
-                  <div className="webflow-form-actions"><Button type="submit" disabled={savingScenario}>{savingScenario ? <LoaderCircle className="spin" /> : null} Create scenario</Button><Button type="button" variant="outline" onClick={() => setShowScenarioForm(false)}>Cancel</Button></div>
+                <form className="webflow-scenario-form" key={editingScenario?.id || 'new-scenario'} onSubmit={saveScenario}>
+                  <label>Scenario name<input name="name" required placeholder="Contact form submissions" defaultValue={editingScenario?.name || ''} /></label>
+                  <div className="webflow-form-row"><label>Trigger<select name="triggerType" value={scenarioTrigger} disabled={Boolean(editingScenario)} onChange={(event) => setScenarioTrigger(event.target.value)}>{triggerOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>{scenarioTrigger === 'form_submission' ? <label>Form name (optional)<input name="formName" placeholder="Contact Form" defaultValue={editingScenario?.form_name || ''} disabled={Boolean(editingScenario)} /></label> : <div className="webflow-form-hint">This scenario listens for every matching Webflow event of this type.</div>}</div>
+                  {editingScenario ? <p className="webflow-form-hint">Trigger and form filters are fixed after creation because they belong to the registered Webflow webhook. Create a new scenario to change them.</p> : null}
+                  <div className="webflow-form-row"><label>Severity<select name="severity" defaultValue={editingScenario?.severity || 'info'}><option value="info">Information</option><option value="warning">Warning</option><option value="critical">Critical</option></select></label><label>Title template<input name="titleTemplate" defaultValue={editingScenario?.title_template || 'New Webflow form submission'} /></label></div>
+                  <label>Body template<textarea ref={bodyTemplateRef} name="bodyTemplate" value={bodyTemplate} onChange={(event) => setBodyTemplate(event.target.value)} rows={3} /></label>
+                  <div className="webflow-template-fields">
+                    <span>Available fields</span>
+                    <div>
+                      {(triggerFields[scenarioTrigger] || []).map((field) => <button type="button" key={field} onClick={() => insertBodyField(field)}>{field}</button>)}
+                    </div>
+                  </div>
+                  <label className="webflow-scenario-active"><input type="checkbox" name="enabled" defaultChecked={editingScenario?.enabled ?? true} /> Scenario active</label>
+                  <div className="webflow-form-actions"><Button type="submit" disabled={savingScenario}>{savingScenario ? <LoaderCircle className="spin" /> : null} {editingScenario ? 'Save changes' : 'Create scenario'}</Button><Button type="button" variant="outline" onClick={() => { setEditingScenario(null); setShowScenarioForm(false); }}>Cancel</Button></div>
                 </form>
               ) : null}
               {integration.webflow_scenarios.length ? (
@@ -229,18 +307,23 @@ export function WebflowIntegrationManager({
                     <div className="webflow-scenario-row" key={scenario.id}>
                       <div className="webflow-scenario-main">
                         <strong>{scenario.name}</strong>
-                        <span>{scenario.form_name || 'All forms'} · form submission</span>
+                        <span>{scenario.form_name || 'All forms'} · {triggerLabel(scenario.trigger_type)}</span>
                       </div>
-                      <span className="webflow-scenario-trigger">Form submission</span>
+                      <span className="webflow-scenario-trigger">{triggerLabel(scenario.trigger_type)}</span>
                       <span className={`webflow-scenario-severity severity-${scenario.severity}`}>
                         <i /> {severityLabel(scenario.severity)}
                       </span>
                       <span className="webflow-scenario-enabled">
                         <CheckCircle2 /> {scenario.enabled ? 'Active' : 'Paused'}
                       </span>
-                      <button type="button" onClick={() => void removeScenario(scenario.id)} disabled={removingScenario === scenario.id} aria-label={`Remove ${scenario.name}`}>
-                        {removingScenario === scenario.id ? <LoaderCircle className="spin" /> : <Trash2 />}
-                      </button>
+                      <div className="webflow-scenario-actions">
+                        <button type="button" className="webflow-scenario-edit" onClick={() => editScenario(scenario)} aria-label={`Edit ${scenario.name}`}>
+                          <Edit3 />
+                        </button>
+                        <button type="button" onClick={() => void removeScenario(scenario.id)} disabled={removingScenario === scenario.id} aria-label={`Remove ${scenario.name}`}>
+                          {removingScenario === scenario.id ? <LoaderCircle className="spin" /> : <Trash2 />}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

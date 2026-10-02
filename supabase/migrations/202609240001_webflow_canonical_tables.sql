@@ -43,7 +43,7 @@ create table public.webflow_scenarios (
   user_id uuid not null references auth.users(id) on delete cascade,
   integration_id uuid not null references public.webflow_integrations(id) on delete cascade,
   name text not null check (length(name) between 1 and 120),
-  trigger_type text not null default 'form_submission' check (trigger_type = 'form_submission'),
+  trigger_type text not null default 'form_submission' check (trigger_type in ('form_submission', 'site_publish', 'page_created', 'page_metadata_updated', 'page_deleted', 'ecomm_new_order', 'ecomm_order_changed', 'ecomm_inventory_changed', 'collection_item_created', 'collection_item_changed', 'collection_item_deleted', 'collection_item_published', 'collection_item_unpublished', 'comment_created')),
   webhook_id text,
   form_name text,
   title_template text not null default 'New Webflow form submission',

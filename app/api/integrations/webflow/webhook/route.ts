@@ -33,7 +33,11 @@ export async function POST(request: Request) {
   try {
     const event = JSON.parse(rawBody) as { triggerType?: string; payload?: Record<string, unknown> };
     const payload = event.payload || {};
-    const siteId = typeof payload.siteId === 'string' ? payload.siteId : '';
+    const siteId = typeof payload.siteId === 'string'
+      ? payload.siteId
+      : typeof payload.site === 'string'
+        ? payload.site
+        : '';
     if (!siteId) return NextResponse.json({ accepted: true });
     const supabase = serverSupabase();
     const { data: integration } = await supabase
@@ -62,8 +66,9 @@ export async function POST(request: Request) {
       .is('revoked_at', null)
       .maybeSingle();
     if (!apiKey?.key) return NextResponse.json({ error: 'Assigned API key is unavailable' }, { status: 409 });
-    const title = renderTemplate(scenario.title_template, payload);
-    const body = renderTemplate(scenario.body_template, payload);
+    const templatePayload = { ...payload, triggerType: event.triggerType || 'form_submission' };
+    const title = renderTemplate(scenario.title_template, templatePayload);
+    const body = renderTemplate(scenario.body_template, templatePayload);
     const delivery = await fetch('https://api.notificator-project.com', {
       method: 'POST',
       headers: { authorization: `Bearer ${apiKey.key}`, 'content-type': 'application/json' },
