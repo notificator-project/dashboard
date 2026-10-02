@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { requireUser } from '@/lib/auth/session';
 import { loadDashboardShellOverview } from '@/lib/dashboard/overview';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +89,16 @@ const integrations = [
 
 export default async function IntegrationsPage() {
   const user = await requireUser('/integrations');
-  const overview = await loadDashboardShellOverview(user);
+  const supabase = await createClient();
+  const [overview, webflowResult] = await Promise.all([
+    loadDashboardShellOverview(user),
+    supabase
+      .from('webflow_integrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'connected'),
+  ]);
+  const webflowConnected = (webflowResult.count || 0) > 0;
 
   return (
     <DashboardShell
@@ -122,6 +132,7 @@ export default async function IntegrationsPage() {
         {integrations.map((integration) => {
           const Icon = integration.icon;
           const internal = integration.href.startsWith('/');
+          const isWebflow = integration.name === 'Webflow';
           return (
             <Card
               key={integration.name}
@@ -137,8 +148,11 @@ export default async function IntegrationsPage() {
                     <CardTitle>{integration.name}</CardTitle>
                   </div>
                 </div>
-                <Badge variant="outline" className="integration-page-status">
-                  <i /> {integration.status}
+                <Badge
+                  variant="outline"
+                  className={`integration-page-status${isWebflow && webflowConnected ? ' integration-page-status-connected' : ''}`}
+                >
+                  <i /> {isWebflow && webflowConnected ? 'Connected' : integration.status}
                 </Badge>
               </CardHeader>
               <CardContent>
@@ -153,7 +167,7 @@ export default async function IntegrationsPage() {
                       : {})}
                     className="integration-page-primary-action"
                   >
-                    {integration.action} <ArrowUpRight />
+                    {isWebflow && webflowConnected ? 'Configure Webflow' : integration.action} <ArrowUpRight />
                   </Link>
                   <Link
                     href={integration.resourceHref}

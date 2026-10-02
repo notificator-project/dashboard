@@ -1616,6 +1616,22 @@
   display: grid;
   gap: 3px;
 }
+.webflow-section-heading-actions {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+.webflow-section-heading-actions select {
+  min-height: 36px;
+  max-width: 220px;
+  border: 1px solid #cfd8e8;
+  border-radius: 9px;
+  background: #fff;
+  color: #202a40;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+}
 .webflow-manager-title {
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -1655,6 +1671,29 @@
   border-radius: 14px;
   background: #f8faff;
   padding: 14px;
+}
+.webflow-connected-site-actions {
+  display: flex !important;
+  align-items: center;
+  flex: none;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.webflow-connected-site-actions select {
+  min-height: 38px;
+  min-width: min(100%, 220px);
+  border: 1px solid #cfd8e8;
+  border-radius: 9px;
+  background: #fff;
+  color: #202a40;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12px;
+}
+.webflow-connected-site > div:first-child {
+  min-width: 0;
+  flex: 1;
 }
 .webflow-site-picker {
   display: grid;
@@ -1714,11 +1753,101 @@
   min-width: min(100%, 240px);
   flex: 1;
 }
+.webflow-form-hint {
+  align-self: end;
+  color: #65728a;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 0 2px 10px;
+}
 .webflow-scenario-form textarea {
   resize: vertical;
 }
+.webflow-template-fields {
+  display: grid;
+  gap: 7px;
+  margin-top: -4px;
+}
+.webflow-template-fields > span {
+  color: #65728a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.webflow-template-fields > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.webflow-template-fields button {
+  border: 1px solid #cfd8e8;
+  border-radius: 999px;
+  background: #fff;
+  color: #2859dc;
+  padding: 5px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+.webflow-template-fields button:hover {
+  border-color: #8faeff;
+  background: #f1f5ff;
+}
 .webflow-form-actions {
   padding-top: 2px;
+}
+.webflow-scenario-active {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  color: #59657c !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+.webflow-scenario-active input {
+  min-height: 0;
+  width: 16px;
+  accent-color: #2859dc;
+}
+.webflow-scenario-sites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+  border: 1px solid #dfe4ee;
+  border-radius: 10px;
+  color: #59657c;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.webflow-scenario-sites legend {
+  padding: 0 4px;
+  color: #59657c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.webflow-scenario-sites > span {
+  width: 100%;
+}
+.webflow-scenario-sites label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #202a40;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.webflow-scenario-sites input {
+  min-height: 0;
+  width: 15px;
+  accent-color: #2859dc;
 }
 .webflow-scenario-row {
   min-height: 58px;
@@ -1743,6 +1872,101 @@
 }
 .webflow-scenario-row button svg {
   width: 16px;
+}
+.webflow-scenario-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+.webflow-scenario-actions .webflow-scenario-edit {
+  color: #2859dc;
+}
+.webflow-scenario-actions .webflow-scenario-edit:hover {
+  background: #edf3ff;
+}
+.webflow-scenario-table {
+  overflow: hidden;
+  border: 1px solid #e0e6f0;
+  border-radius: 14px;
+  background: #fff;
+}
+.webflow-scenario-table-head,
+.webflow-scenario-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.4fr) minmax(130px, 0.9fr) minmax(110px, 0.8fr) minmax(90px, 0.7fr) 34px;
+  align-items: center;
+  gap: 14px;
+  padding-inline: 14px;
+}
+.webflow-scenario-table-head {
+  min-height: 38px;
+  border-bottom: 1px solid #e0e6f0;
+  background: #f7f9fd;
+  color: #7a879c;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.webflow-scenario-row {
+  min-height: 72px;
+  border-bottom: 1px solid #edf0f6;
+}
+.webflow-scenario-row:last-child {
+  border-bottom: 0;
+}
+.webflow-scenario-main {
+  min-width: 0;
+}
+.webflow-scenario-main strong,
+.webflow-scenario-key,
+.webflow-scenario-enabled,
+.webflow-scenario-severity {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.webflow-scenario-severity,
+.webflow-scenario-enabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.webflow-scenario-severity i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1f56db;
+}
+.webflow-scenario-severity.severity-warning {
+  color: #9a6600;
+}
+.webflow-scenario-severity.severity-warning i {
+  background: #d99500;
+}
+.webflow-scenario-severity.severity-critical {
+  color: #b0334a;
+}
+.webflow-scenario-severity.severity-critical i {
+  background: #d4425c;
+}
+.webflow-scenario-key {
+  color: #59657c;
+  font-size: 12px;
+}
+.webflow-scenario-trigger {
+  color: #59657c;
+  font-size: 12px;
+}
+.webflow-scenario-enabled {
+  color: #087c58;
+}
+.webflow-scenario-enabled svg {
+  width: 15px;
 }
 .webflow-empty-state {
   display: grid;
@@ -1825,6 +2049,49 @@
   }
   .webflow-empty-state > button {
     grid-column: 1 / -1;
+  }
+  .webflow-scenario-table {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .webflow-scenario-table-head {
+    display: none;
+  }
+  .webflow-scenario-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    min-height: 0;
+    padding: 13px 0;
+  }
+  .webflow-scenario-row > :nth-child(2),
+  .webflow-scenario-row > :nth-child(3),
+  .webflow-scenario-row > :nth-child(4) {
+    grid-column: 1;
+  }
+  .webflow-scenario-row > :nth-child(2) {
+    grid-row: 2;
+  }
+  .webflow-scenario-row > :nth-child(3) {
+    grid-row: 3;
+  }
+  .webflow-scenario-row > .webflow-scenario-actions {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+  .webflow-connected-site-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .webflow-section-heading-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .webflow-section-heading-actions select {
+    max-width: none;
   }
 }
 .integrations-page-grid {

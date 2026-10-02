@@ -17,19 +17,24 @@ export default async function WebflowIntegrationPage({
 }) {
   const user = await requireUser('/integrations/webflow');
   const supabase = await createClient();
-  const [overview, { data: integrations }, { data: apiKeys }] = await Promise.all([
+  const [overview, { data: integrations }, { data: assignments }, { data: apiKeys }] = await Promise.all([
     loadDashboardShellOverview(user),
     supabase
       .from('webflow_integrations')
       .select(
-        'id, webflow_site_id, webflow_site_name, status, webflow_scenarios(id, name, api_key_id, form_name, severity)',
+        'id, webflow_site_id, webflow_site_name, api_key_id, status, webflow_scenarios(id, name, trigger_type, form_name, title_template, body_template, severity, enabled, webhook_id, created_at)',
       )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
+      .from('webflow_scenario_sites')
+      .select('scenario_id, integration_id, webhook_id')
+      .order('created_at', { ascending: true }),
+    supabase
       .from('api_keys')
       .select('id, name, key_type')
       .eq('user_id', user.id)
+      .eq('key_type', 'public_client')
       .is('revoked_at', null)
       .order('created_at', { ascending: false }),
   ]);
@@ -37,11 +42,11 @@ export default async function WebflowIntegrationPage({
 
   return (
     <DashboardShell
-      activePath="/integrations"
+      activePath="/integrations/webflow"
       overview={overview}
       eyebrow="WEBSITE AUTOMATION"
       title="Webflow"
-      description="Connect Webflow to your account, then create scenarios for form submissions."
+      description="Connect one or more Webflow sites, then route selected events into reusable notification scenarios."
       action={
         <Link
           href="/integrations"
@@ -56,7 +61,7 @@ export default async function WebflowIntegrationPage({
         <div>
           <p>ACCOUNT CONNECTION</p>
           <h2>Bring Webflow events into Notificator</h2>
-          <span>Authorize Webflow once, choose a site, and route form submissions through an API key you control.</span>
+          <span>Authorize Webflow once, connect the sites you need, and route selected events through API keys you control.</span>
         </div>
         <div className="webflow-page-hero-trust"><ShieldCheck /><span>OAuth credentials stay encrypted</span></div>
       </section>
@@ -65,14 +70,23 @@ export default async function WebflowIntegrationPage({
           id: String(integration.id),
           webflow_site_id: integration.webflow_site_id,
           webflow_site_name: integration.webflow_site_name,
+          api_key_id: integration.api_key_id,
           status: integration.status,
           webflow_scenarios: Array.isArray(integration.webflow_scenarios)
             ? integration.webflow_scenarios.map((scenario) => ({
                 id: String(scenario.id),
                 name: scenario.name,
-                api_key_id: scenario.api_key_id,
+                trigger_type: scenario.trigger_type,
                 form_name: scenario.form_name,
+                title_template: scenario.title_template,
+                body_template: scenario.body_template,
                 severity: scenario.severity,
+                enabled: scenario.enabled,
+                webhook_id: scenario.webhook_id,
+                integration_ids: (assignments || [])
+                  .filter((assignment) => assignment.scenario_id === scenario.id)
+                  .map((assignment) => String(assignment.integration_id)),
+                created_at: scenario.created_at,
               }))
             : [],
         }))}

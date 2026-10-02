@@ -33,37 +33,49 @@ export async function POST(request: Request) {
   try {
     const event = JSON.parse(rawBody) as { triggerType?: string; payload?: Record<string, unknown> };
     const payload = event.payload || {};
-    const siteId = typeof payload.siteId === 'string' ? payload.siteId : '';
+    const siteId = typeof payload.siteId === 'string'
+      ? payload.siteId
+      : typeof payload.site === 'string'
+        ? payload.site
+        : '';
     if (!siteId) return NextResponse.json({ accepted: true });
     const supabase = serverSupabase();
     const { data: integration } = await supabase
       .from('webflow_integrations')
-      .select('id')
+      .select('id, api_key_id')
       .eq('webflow_site_id', siteId)
       .eq('status', 'connected')
       .maybeSingle();
     if (!integration) return NextResponse.json({ accepted: true });
-    const { data: scenario } = await supabase
+    const { data: assignments } = await supabase
+      .from('webflow_scenario_sites')
+      .select('scenario_id')
+      .eq('integration_id', integration.id);
+    const assignmentIds = (assignments || []).map((item) => item.scenario_id);
+    let scenarioQuery = supabase
       .from('webflow_scenarios')
-      .select('api_key_id, form_name, title_template, body_template, severity')
-      .eq('integration_id', integration.id)
+      .select('form_name, title_template, body_template, severity')
       .eq('trigger_type', event.triggerType || 'form_submission')
       .eq('enabled', true)
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!scenario?.api_key_id || (scenario.form_name && scenario.form_name !== payload.name)) {
+      .limit(1);
+    scenarioQuery = assignmentIds.length
+      ? scenarioQuery.in('id', assignmentIds)
+      : scenarioQuery.eq('integration_id', integration.id);
+    const { data: scenario } = await scenarioQuery.maybeSingle();
+    if (!integration.api_key_id || !scenario || (scenario.form_name && scenario.form_name !== payload.name)) {
       return NextResponse.json({ accepted: true });
     }
     const { data: apiKey } = await supabase
       .from('api_keys')
       .select('key')
-      .eq('id', scenario.api_key_id)
+      .eq('id', integration.api_key_id)
       .is('revoked_at', null)
       .maybeSingle();
     if (!apiKey?.key) return NextResponse.json({ error: 'Assigned API key is unavailable' }, { status: 409 });
-    const title = renderTemplate(scenario.title_template, payload);
-    const body = renderTemplate(scenario.body_template, payload);
+    const templatePayload = { ...payload, triggerType: event.triggerType || 'form_submission' };
+    const title = renderTemplate(scenario.title_template, templatePayload);
+    const body = renderTemplate(scenario.body_template, templatePayload);
     const delivery = await fetch('https://api.notificator-project.com', {
       method: 'POST',
       headers: { authorization: `Bearer ${apiKey.key}`, 'content-type': 'application/json' },

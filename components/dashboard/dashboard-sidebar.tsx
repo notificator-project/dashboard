@@ -7,6 +7,7 @@ import {
   Bell,
   Blocks,
   CircleUserRound,
+  Globe2,
   KeyRound,
   LayoutDashboard,
   MonitorSmartphone,
@@ -50,17 +51,22 @@ const navigation = [
 export function DashboardSidebar({
   activePath,
   unreadCount,
+  webflowConnected,
   supabaseConfig,
   statusTitle = 'Account connected',
   statusDescription = 'Supabase session active',
 }: {
   activePath: string;
   unreadCount: number;
+  webflowConnected: boolean;
   supabaseConfig: SupabasePublicConfig;
   statusTitle?: string;
   statusDescription?: string;
 }) {
   const router = useRouter();
+  const items = webflowConnected
+    ? [...navigation.slice(0, 4), { label: 'Webflow', icon: Globe2, href: '/integrations/webflow' }, ...navigation.slice(4)]
+    : navigation;
   const collapsed = useSyncExternalStore(
     subscribeToPreference,
     preferenceSnapshot,
@@ -114,7 +120,7 @@ export function DashboardSidebar({
         aria-label="Dashboard navigation"
       >
         <p>Workspace</p>
-        {navigation.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const active = item.href === activePath;
           return (

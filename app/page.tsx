@@ -2,6 +2,7 @@ import {
   Activity,
   Bell,
   ChevronRight,
+  Globe2,
   KeyRound,
   Mail,
   MonitorSmartphone,
@@ -80,6 +81,16 @@ export default async function Home() {
       href: overview.deviceCount > 0 ? '/devices' : '/devices/new',
       icon: MonitorSmartphone,
     },
+    {
+      label: 'Webflow automation',
+      detail: overview.webflowConnected
+        ? 'Form scenarios are connected'
+        : 'Connect a Webflow site and scenario',
+      ready: overview.webflowConnected,
+      action: overview.webflowConnected ? 'Configure' : 'Set up',
+      href: '/integrations/webflow',
+      icon: Globe2,
+    },
   ];
   const readyDeliveryChannels = deliveryChannels.filter(
     (channel) => channel.ready,
@@ -92,6 +103,7 @@ export default async function Home() {
       <DashboardSidebar
         activePath="/"
         unreadCount={overview.unreadCount}
+        webflowConnected={overview.webflowConnected}
         supabaseConfig={supabaseConfig}
         statusTitle="All systems operational"
         statusDescription="Last checked just now"
@@ -107,6 +119,7 @@ export default async function Home() {
           <MobileNavigation
             activePath="/"
             unreadCount={overview.unreadCount}
+            webflowConnected={overview.webflowConnected}
             supabaseConfig={supabaseConfig}
           />
         </header>

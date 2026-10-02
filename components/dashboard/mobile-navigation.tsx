@@ -6,6 +6,7 @@ import {
   Bell,
   Blocks,
   CircleUserRound,
+  Globe2,
   KeyRound,
   LayoutDashboard,
   Menu,
@@ -36,13 +37,18 @@ const navigation = [
 export function MobileNavigation({
   activePath,
   unreadCount,
+  webflowConnected,
   supabaseConfig,
 }: {
   activePath: string;
   unreadCount: number;
+  webflowConnected: boolean;
   supabaseConfig: SupabasePublicConfig;
 }) {
   const [open, setOpen] = useState(false);
+  const items = webflowConnected
+    ? [...navigation.slice(0, 4), { label: 'Webflow', icon: Globe2, href: '/integrations/webflow' }, ...navigation.slice(4)]
+    : navigation;
   return (
     <>
       <Button
@@ -69,7 +75,7 @@ export function MobileNavigation({
             aria-label="Mobile navigation"
           >
             <p>Workspace</p>
-            {navigation.map((item) => {
+            {items.map((item) => {
               const Icon = item.icon;
               const active = item.href === activePath;
               return (

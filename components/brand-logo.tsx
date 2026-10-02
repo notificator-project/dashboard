@@ -17,6 +17,7 @@ export function BrandLogo({
       alt=""
       width={size}
       height={size}
+      unoptimized
       aria-hidden="true"
     />
   );

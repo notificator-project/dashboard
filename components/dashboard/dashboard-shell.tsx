@@ -38,6 +38,7 @@ export function DashboardShell({
       <DashboardSidebar
         activePath={activePath}
         unreadCount={overview.unreadCount}
+        webflowConnected={overview.webflowConnected}
         supabaseConfig={supabaseConfig}
       />
 
@@ -51,6 +52,7 @@ export function DashboardShell({
           <MobileNavigation
             activePath={activePath}
             unreadCount={overview.unreadCount}
+            webflowConnected={overview.webflowConnected}
             supabaseConfig={supabaseConfig}
           />
         </header>
