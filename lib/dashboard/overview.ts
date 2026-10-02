@@ -57,6 +57,7 @@ export type DashboardOverview = {
   deviceCount: number;
   onlineDeviceCount: number;
   activeApiKeyCount: number;
+  webflowConnected: boolean;
   activeDestinations: string[];
   notifications: OverviewNotification[];
   devices: OverviewDevice[];
@@ -71,6 +72,7 @@ export type DashboardShellOverview = Pick<
   | 'avatarUrl'
   | 'unreadCount'
   | 'notifications'
+  | 'webflowConnected'
   | 'degraded'
 >;
 
@@ -278,6 +280,7 @@ export async function loadDashboardOverview(
     devicesResult,
     apiKeysResult,
     pushTokensResult,
+    webflowIntegrationsResult,
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -317,6 +320,11 @@ export async function loadDashboardOverview(
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('enabled', true),
+    supabase
+      .from('webflow_integrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'connected'),
   ]);
 
   const results = [
@@ -327,6 +335,7 @@ export async function loadDashboardOverview(
     devicesResult,
     apiKeysResult,
     pushTokensResult,
+    webflowIntegrationsResult,
   ];
   const degraded = results.some((result) => Boolean(result.error));
   if (degraded) {
@@ -382,6 +391,7 @@ export async function loadDashboardOverview(
     deviceCount: deviceRows.length,
     onlineDeviceCount,
     activeApiKeyCount: apiKeysResult.count || 0,
+    webflowConnected: (webflowIntegrationsResult.count || 0) > 0,
     activeDestinations,
     notifications,
     devices,
@@ -395,7 +405,7 @@ export async function loadDashboardShellOverview(
   notificationLimit = 4,
 ): Promise<DashboardShellOverview> {
   const supabase = await createClient();
-  const [profileResult, unreadResult, notificationsResult] = await Promise.all([
+  const [profileResult, unreadResult, notificationsResult, webflowIntegrationsResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('first_name, last_name, public_key')
@@ -412,6 +422,11 @@ export async function loadDashboardShellOverview(
       .eq('user_id', user.id)
       .order('timestamp', { ascending: false })
       .limit(notificationLimit),
+    supabase
+      .from('webflow_integrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'connected'),
   ]);
   const profile = profileResult.data as Record<string, unknown> | null;
   const sharedKey = text(profile?.public_key);
@@ -427,7 +442,8 @@ export async function loadDashboardShellOverview(
     notifications: notificationRows.map((row) =>
       mapNotificationRow(row, sharedKey),
     ),
-    degraded: [profileResult, unreadResult, notificationsResult].some(
+    webflowConnected: (webflowIntegrationsResult.count || 0) > 0,
+    degraded: [profileResult, unreadResult, notificationsResult, webflowIntegrationsResult].some(
       (result) => Boolean(result.error),
     ),
   };

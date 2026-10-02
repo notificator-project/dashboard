@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { ExternalLink, Globe2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Globe2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -10,14 +10,17 @@ type Site = { id: string; displayName?: string; name?: string };
 type Scenario = {
   id: string;
   name: string;
-  api_key_id: string | null;
   form_name: string | null;
   severity: string;
+  enabled: boolean;
+  webhook_id: string | null;
+  created_at: string | null;
 };
 type Integration = {
   id: string;
   webflow_site_id: string | null;
   webflow_site_name: string | null;
+  api_key_id: string | null;
   status: string;
   webflow_scenarios: Scenario[];
 };
@@ -26,6 +29,12 @@ function keyTypeLabel(value: string) {
   if (value === 'strapi_server') return 'Strapi';
   if (value === 'public_client') return 'API / Node.js';
   return 'WordPress';
+}
+
+function severityLabel(value: string) {
+  if (value === 'critical') return 'Critical';
+  if (value === 'warning') return 'Warning';
+  return 'Information';
 }
 
 export function WebflowIntegrationManager({
@@ -39,7 +48,8 @@ export function WebflowIntegrationManager({
 }) {
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [sites, setSites] = useState<Site[]>([]);
-  const [selectedSite, setSelectedSite] = useState('');
+  const [selectedSite, setSelectedSite] = useState(initialIntegrations[0]?.webflow_site_id || '');
+  const [selectedApiKey, setSelectedApiKey] = useState(initialIntegrations[0]?.api_key_id || '');
   const [loadingSites, setLoadingSites] = useState(false);
   const [savingSite, setSavingSite] = useState(false);
   const [changingSite, setChangingSite] = useState(false);
@@ -76,24 +86,24 @@ export function WebflowIntegrationManager({
   }, [integration, loadSites]);
 
   async function saveSite() {
-    if (!integration || !selectedSite) return;
+    if (!integration || !selectedSite || !selectedApiKey) return;
     const site = sites.find((item) => item.id === selectedSite);
     setSavingSite(true);
     setError('');
     const response = await fetch('/api/integrations/webflow', {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id: integration.id, siteId: selectedSite, siteName: site?.displayName || site?.name || selectedSite }),
+      body: JSON.stringify({ id: integration.id, siteId: selectedSite, apiKeyId: selectedApiKey, siteName: site?.displayName || site?.name || integration.webflow_site_name || selectedSite }),
     });
-    const payload = (await response.json()) as { integration?: { webflow_site_id: string; webflow_site_name: string }; error?: string };
+    const payload = (await response.json()) as { integration?: { webflow_site_id: string; webflow_site_name: string; api_key_id: string }; error?: string };
     setSavingSite(false);
     if (!response.ok || !payload.integration) {
       setError(payload.error || 'Unable to save the Webflow site.');
       return;
     }
-    setIntegrations((current) => current.map((item) => item.id === integration.id ? { ...item, webflow_site_id: payload.integration!.webflow_site_id, webflow_site_name: payload.integration!.webflow_site_name } : item));
+    setIntegrations((current) => current.map((item) => item.id === integration.id ? { ...item, webflow_site_id: payload.integration!.webflow_site_id, webflow_site_name: payload.integration!.webflow_site_name, api_key_id: payload.integration!.api_key_id } : item));
     setChangingSite(false);
-    setMessage('Webflow site connected. Add a scenario below.');
+    setMessage('Webflow site and delivery key saved. Add a scenario below.');
   }
 
   async function disconnect() {
@@ -168,8 +178,15 @@ export function WebflowIntegrationManager({
           </div>
           {integration.webflow_site_id && !changingSite ? (
             <div className="webflow-connected-site">
-              <div><span>Connected site</span><strong>{integration.webflow_site_name || integration.webflow_site_id}</strong></div>
-              <Button type="button" variant="outline" onClick={() => { setChangingSite(true); setSelectedSite(integration.webflow_site_id || ''); void loadSites(); }}>Change site</Button>
+              <div><span>Connected site</span><strong>{integration.webflow_site_name || integration.webflow_site_id}</strong><small>All scenarios use this account API key.</small></div>
+              <div className="webflow-connected-site-actions">
+                <select value={selectedApiKey} onChange={(event) => setSelectedApiKey(event.target.value)} aria-label="Webflow site API key">
+                  <option value="">Select an active API key</option>
+                  {apiKeys.map((key) => <option key={key.id} value={key.id}>{key.name} · {keyTypeLabel(key.keyType)}</option>)}
+                </select>
+                <Button type="button" onClick={() => void saveSite()} disabled={!selectedApiKey || savingSite}>{savingSite ? <LoaderCircle className="spin" /> : null} Save key</Button>
+                <Button type="button" variant="outline" onClick={() => { setChangingSite(true); setSelectedSite(integration.webflow_site_id || ''); void loadSites(); }}>Change site</Button>
+              </div>
             </div>
           ) : (
             <div className="webflow-site-picker">
@@ -179,7 +196,11 @@ export function WebflowIntegrationManager({
                   <option value="">{loadingSites ? 'Loading sites…' : 'Select a site'}</option>
                   {sites.map((site) => <option key={site.id} value={site.id}>{site.displayName || site.name || site.id}</option>)}
                 </select>
-                <Button type="button" onClick={saveSite} disabled={!selectedSite || savingSite}>{savingSite ? <LoaderCircle className="spin" /> : null} Save site</Button>
+                <select value={selectedApiKey} onChange={(event) => setSelectedApiKey(event.target.value)} aria-label="Webflow site API key">
+                  <option value="">Select an active API key</option>
+                  {apiKeys.map((key) => <option key={key.id} value={key.id}>{key.name} · {keyTypeLabel(key.keyType)}</option>)}
+                </select>
+                <Button type="button" onClick={saveSite} disabled={!selectedSite || !selectedApiKey || savingSite}>{savingSite ? <LoaderCircle className="spin" /> : null} Save site</Button>
               </div>
             </div>
           )}
@@ -189,13 +210,41 @@ export function WebflowIntegrationManager({
               {showScenarioForm ? (
                 <form className="webflow-scenario-form" onSubmit={createScenario}>
                   <label>Scenario name<input name="name" required placeholder="Contact form submissions" /></label>
-                  <div className="webflow-form-row"><label>API key<select name="apiKeyId" required><option value="">Select an active API key</option>{apiKeys.map((key) => <option key={key.id} value={key.id}>{key.name} · {keyTypeLabel(key.keyType)}</option>)}</select></label><label>Form name (optional)<input name="formName" placeholder="Contact Form" /></label></div>
+                  <label>Form name (optional)<input name="formName" placeholder="Contact Form" /></label>
                   <div className="webflow-form-row"><label>Severity<select name="severity" defaultValue="info"><option value="info">Information</option><option value="warning">Warning</option><option value="critical">Critical</option></select></label><label>Title template<input name="titleTemplate" defaultValue="New Webflow form submission" /></label></div>
                   <label>Body template<textarea name="bodyTemplate" defaultValue="A new form was submitted on your Webflow site." rows={3} /></label>
                   <div className="webflow-form-actions"><Button type="submit" disabled={savingScenario}>{savingScenario ? <LoaderCircle className="spin" /> : null} Create scenario</Button><Button type="button" variant="outline" onClick={() => setShowScenarioForm(false)}>Cancel</Button></div>
                 </form>
               ) : null}
-              {integration.webflow_scenarios.length ? integration.webflow_scenarios.map((scenario) => <div className="webflow-scenario-row" key={scenario.id}><div><strong>{scenario.name}</strong><span>{scenario.form_name || 'All forms'} · {scenario.severity}</span></div><button type="button" onClick={() => void removeScenario(scenario.id)} disabled={removingScenario === scenario.id} aria-label={`Remove ${scenario.name}`}><Trash2 /></button></div>) : <p className="webflow-no-scenarios">No scenarios yet. Add one to start receiving Webflow events.</p>}
+              {integration.webflow_scenarios.length ? (
+                <div className="webflow-scenario-table" aria-label="Webflow notification scenarios">
+                  <div className="webflow-scenario-table-head">
+                    <span>Scenario</span>
+                    <span>Trigger</span>
+                    <span>Severity</span>
+                    <span>Status</span>
+                    <span aria-label="Actions" />
+                  </div>
+                  {integration.webflow_scenarios.map((scenario) => (
+                    <div className="webflow-scenario-row" key={scenario.id}>
+                      <div className="webflow-scenario-main">
+                        <strong>{scenario.name}</strong>
+                        <span>{scenario.form_name || 'All forms'} · form submission</span>
+                      </div>
+                      <span className="webflow-scenario-trigger">Form submission</span>
+                      <span className={`webflow-scenario-severity severity-${scenario.severity}`}>
+                        <i /> {severityLabel(scenario.severity)}
+                      </span>
+                      <span className="webflow-scenario-enabled">
+                        <CheckCircle2 /> {scenario.enabled ? 'Active' : 'Paused'}
+                      </span>
+                      <button type="button" onClick={() => void removeScenario(scenario.id)} disabled={removingScenario === scenario.id} aria-label={`Remove ${scenario.name}`}>
+                        {removingScenario === scenario.id ? <LoaderCircle className="spin" /> : <Trash2 />}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="webflow-no-scenarios">No scenarios yet. Add one to start receiving Webflow events.</p>}
             </div>
           ) : null}
         </>

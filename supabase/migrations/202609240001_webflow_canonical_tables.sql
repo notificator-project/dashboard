@@ -11,6 +11,7 @@ create table if not exists public.webflow_integrations (
   webflow_site_id text,
   webflow_site_name text,
   encrypted_access_token text not null check (length(encrypted_access_token) between 1 and 16000),
+  api_key_id uuid references public.api_keys(id) on delete set null,
   status text not null default 'connected' check (status in ('connected', 'disabled')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -19,6 +20,9 @@ create table if not exists public.webflow_integrations (
 create unique index if not exists webflow_integrations_user_site_idx
   on public.webflow_integrations (user_id, webflow_site_id)
   where webflow_site_id is not null;
+
+alter table public.webflow_integrations
+  add column if not exists api_key_id uuid references public.api_keys(id) on delete set null;
 
 alter table public.webflow_integrations enable row level security;
 alter table public.webflow_integrations force row level security;
@@ -38,7 +42,6 @@ create table public.webflow_scenarios (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   integration_id uuid not null references public.webflow_integrations(id) on delete cascade,
-  api_key_id uuid references public.api_keys(id) on delete set null,
   name text not null check (length(name) between 1 and 120),
   trigger_type text not null default 'form_submission' check (trigger_type = 'form_submission'),
   webhook_id text,

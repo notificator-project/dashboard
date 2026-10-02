@@ -22,7 +22,7 @@ export default async function WebflowIntegrationPage({
     supabase
       .from('webflow_integrations')
       .select(
-        'id, webflow_site_id, webflow_site_name, status, webflow_scenarios(id, name, api_key_id, form_name, severity)',
+        'id, webflow_site_id, webflow_site_name, api_key_id, status, webflow_scenarios(id, name, form_name, severity, enabled, webhook_id, created_at)',
       )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
@@ -30,6 +30,7 @@ export default async function WebflowIntegrationPage({
       .from('api_keys')
       .select('id, name, key_type')
       .eq('user_id', user.id)
+      .eq('key_type', 'public_client')
       .is('revoked_at', null)
       .order('created_at', { ascending: false }),
   ]);
@@ -37,7 +38,7 @@ export default async function WebflowIntegrationPage({
 
   return (
     <DashboardShell
-      activePath="/integrations"
+      activePath="/integrations/webflow"
       overview={overview}
       eyebrow="WEBSITE AUTOMATION"
       title="Webflow"
@@ -65,14 +66,17 @@ export default async function WebflowIntegrationPage({
           id: String(integration.id),
           webflow_site_id: integration.webflow_site_id,
           webflow_site_name: integration.webflow_site_name,
+          api_key_id: integration.api_key_id,
           status: integration.status,
           webflow_scenarios: Array.isArray(integration.webflow_scenarios)
             ? integration.webflow_scenarios.map((scenario) => ({
                 id: String(scenario.id),
                 name: scenario.name,
-                api_key_id: scenario.api_key_id,
                 form_name: scenario.form_name,
                 severity: scenario.severity,
+                enabled: scenario.enabled,
+                webhook_id: scenario.webhook_id,
+                created_at: scenario.created_at,
               }))
             : [],
         }))}

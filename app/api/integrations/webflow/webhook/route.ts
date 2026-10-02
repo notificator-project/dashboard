@@ -38,27 +38,27 @@ export async function POST(request: Request) {
     const supabase = serverSupabase();
     const { data: integration } = await supabase
       .from('webflow_integrations')
-      .select('id')
+      .select('id, api_key_id')
       .eq('webflow_site_id', siteId)
       .eq('status', 'connected')
       .maybeSingle();
     if (!integration) return NextResponse.json({ accepted: true });
     const { data: scenario } = await supabase
       .from('webflow_scenarios')
-      .select('api_key_id, form_name, title_template, body_template, severity')
+      .select('form_name, title_template, body_template, severity')
       .eq('integration_id', integration.id)
       .eq('trigger_type', event.triggerType || 'form_submission')
       .eq('enabled', true)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!scenario?.api_key_id || (scenario.form_name && scenario.form_name !== payload.name)) {
+    if (!integration.api_key_id || !scenario || (scenario.form_name && scenario.form_name !== payload.name)) {
       return NextResponse.json({ accepted: true });
     }
     const { data: apiKey } = await supabase
       .from('api_keys')
       .select('key')
-      .eq('id', scenario.api_key_id)
+      .eq('id', integration.api_key_id)
       .is('revoked_at', null)
       .maybeSingle();
     if (!apiKey?.key) return NextResponse.json({ error: 'Assigned API key is unavailable' }, { status: 409 });
