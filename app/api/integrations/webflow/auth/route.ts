@@ -23,10 +23,9 @@ export async function GET(request: Request) {
   authorize.searchParams.set('response_type', 'code');
   authorize.searchParams.set('client_id', required('WEBFLOW_CLIENT_ID'));
   authorize.searchParams.set('redirect_uri', redirectUri);
-  authorize.searchParams.set(
-    'scope',
-    process.env.WEBFLOW_SCOPES || 'sites:read sites:write forms:read cms:read',
-  );
+  const configuredScopes = (process.env.WEBFLOW_SCOPES || '').split(/\s+/).filter(Boolean);
+  const requiredScopes = ['sites:read', 'sites:write', 'forms:read'];
+  authorize.searchParams.set('scope', Array.from(new Set([...configuredScopes, ...requiredScopes])).join(' '));
   authorize.searchParams.set('state', state);
 
   const response = NextResponse.redirect(authorize);
