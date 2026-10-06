@@ -34,18 +34,25 @@ export async function POST(request: Request) {
   const triggerType = typeof body.triggerType === 'string' ? body.triggerType : 'form_submission';
   if (!integrationIds.length || !name) return NextResponse.json({ error: 'Choose at least one Webflow site and enter a scenario name.' }, { status: 400 });
   if (!supportedTriggerTypes.has(triggerType)) return NextResponse.json({ error: 'Unsupported Webflow trigger type.' }, { status: 400 });
-  const { data: integrations } = await supabase.from('webflow_integrations').select('id, webflow_site_id, encrypted_access_token, api_key_id').in('id', integrationIds).eq('user_id', user.id);
+  const { data: integrations } = await supabase.from('webflow_integrations').select('id, webflow_site_id, api_key_id').in('id', integrationIds).eq('user_id', user.id);
   if (!integrations?.length || integrations.length !== integrationIds.length || integrations.some((item) => !item.webflow_site_id || !item.api_key_id)) return NextResponse.json({ error: 'Choose an active API key for every connected Webflow site.' }, { status: 400 });
+  const { data: tokenSource } = await supabase.from('webflow_integrations').select('encrypted_access_token').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (!tokenSource?.encrypted_access_token) return NextResponse.json({ error: 'Webflow OAuth connection is unavailable. Reconnect Webflow and try again.' }, { status: 400 });
+  const accessToken = decryptWebflowSecret(tokenSource.encrypted_access_token);
   const webhookUrl = process.env.WEBFLOW_WEBHOOK_URL?.trim() || new URL('/api/integrations/webflow/webhook', request.url).toString();
   const registered: Array<{ integrationId: string; webhookId: string }> = [];
   for (const integration of integrations) {
     const webhookResponse = await fetch(`https://api.webflow.com/v2/sites/${encodeURIComponent(integration.webflow_site_id!)}/webhooks`, {
       method: 'POST',
-      headers: { accept: 'application/json', 'content-type': 'application/json', authorization: `Bearer ${decryptWebflowSecret(integration.encrypted_access_token)}` },
+      headers: { accept: 'application/json', 'content-type': 'application/json', authorization: `Bearer ${accessToken}` },
       body: JSON.stringify({ triggerType, url: webhookUrl, ...(triggerType === 'form_submission' && typeof body.formName === 'string' && body.formName.trim() ? { filter: { name: body.formName.trim() } } : {}) }),
     });
     const webhook = (await webhookResponse.json()) as { id?: string; message?: string };
-    if (!webhookResponse.ok || !webhook.id) return NextResponse.json({ error: webhook.message || 'Unable to register the Webflow webhook for every selected site.' }, { status: 502 });
+    if (!webhookResponse.ok || !webhook.id) {
+      const detail = webhook.message || 'Unable to register the Webflow webhook for every selected site.';
+      const scopeHint = webhookResponse.status === 404 ? ' Reconnect Webflow after granting the sites:write scope, and confirm the site is still authorized.' : '';
+      return NextResponse.json({ error: `${detail} (site ${integration.webflow_site_id}).${scopeHint}` }, { status: 502 });
+    }
     registered.push({ integrationId: integration.id, webhookId: webhook.id });
   }
   const { data, error } = await supabase.from('webflow_scenarios').insert({
